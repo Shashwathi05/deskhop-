@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard</title>
+  <style>
+    body { font-family: Arial; background: #fafafa; text-align: center; }
+    h1 { color: #333; }
+    .stats { display: flex; justify-content: center; gap: 40px; margin: 30px; }
+    .card {
+      padding: 20px; border-radius: 12px;
+      background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 200px;
+    }
+    a { display: block; margin-top: 20px; color: white; background: #007bff; padding: 10px; border-radius: 8px; text-decoration: none; }
+    a:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <h1>🛡 Admin Dashboard</h1>
+  <div class="stats">
+    <div class="card">
+      <h2>{{ users }}</h2>
+      <p>Total Users</p>
+    </div>
+    <div class="card">
+      <h2>{{ total }}</h2>
+      <p>Total Devices</p>
+    </div>
+    <div class="card">
+      <h2>{{ pending }}</h2>
+      <p>Pending Approvals</p>
+    </div>
+  </div>
+
+  <a href="{{ url_for('admin.view_devices') }}">Manage Devices</a>
+</body>
+</html>

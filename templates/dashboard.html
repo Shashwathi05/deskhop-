@@ -1,0 +1,8 @@
+<h2>Your Dashboard</h2>
+<a href="/book">Book a Desk</a> | <a href="/logout">Logout</a>
+<h3>Your Bookings:</h3>
+<ul>
+    {% for booking in bookings %}
+        <li>Desk {{ booking.desk_number }} on {{ booking.date }}</li>
+    {% endfor %}
+</ul>
