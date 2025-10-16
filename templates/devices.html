@@ -1,0 +1,17 @@
+<h2>Device List</h2>
+<table>
+<tr><th>User</th><th>IP</th><th>User Agent</th><th>Compliant</th><th>Action</th></tr>
+{% for device in devices %}
+<tr>
+<td>{{ device.user_id }}</td>
+<td>{{ device.ip_address }}</td>
+<td>{{ device.user_agent }}</td>
+<td>{{ device.compliant }}</td>
+<td>
+{% if not device.compliant %}
+<a href="{{ url_for('compliance.approve_device', device_id=device.id) }}">Approve</a>
+{% endif %}
+</td>
+</tr>
+{% endfor %}
+</table>
