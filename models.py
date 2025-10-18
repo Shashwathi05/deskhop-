@@ -9,7 +9,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(200), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     devices = db.relationship('Device', backref='user', lazy=True)
-
+    bookings = db.relationship('Booking', backref='user', lazy=True)
 
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -18,6 +18,7 @@ class Device(db.Model):
     ip_address = db.Column(db.String(50))
     compliant = db.Column(db.Boolean, default=False)
     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
+    bookings = db.relationship('Booking', backref='device', lazy=True)
 
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)

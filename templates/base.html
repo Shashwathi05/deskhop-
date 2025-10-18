@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html>
-<head><title>DeskHop</title></head>
+<head>
+    <title>DeskHop</title>
+</head>
 <body>
     <h1>Welcome to DeskHop 🚀</h1>
-    <a href="/login">Login</a> | <a href="/signup">Sign Up</a>
+    <a href="{{ url_for('auth.login') }}">Login</a> | 
+    <a href="{{ url_for('auth.signup') }}">Sign Up</a>
+    {% block content %}{% endblock %}
 </body>
 </html>
