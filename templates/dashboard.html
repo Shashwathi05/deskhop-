@@ -1,8 +1,9 @@
-<h2>Your Dashboard</h2>
-<a href="/book">Book a Desk</a> | <a href="/logout">Logout</a>
-<h3>Your Bookings:</h3>
+<h2>Your Bookings</h2>
 <ul>
-    {% for booking in bookings %}
-        <li>Desk {{ booking.desk_number }} on {{ booking.date }}</li>
-    {% endfor %}
+{% for b in bookings %}
+  <li>Desk {{ b.desk_number }} on {{ b.booking_date }}</li>
+{% else %}
+  <li>No bookings yet</li>
+{% endfor %}
 </ul>
+<a href="{{ url_for('booking.book_desk') }}">Book a new desk</a>
