@@ -27,7 +27,20 @@
       <p>Total Devices</p>
     </div>
     <div class="card">
-      <h2>{{ pending }}</h2>
+      <h2>Pending Device Approvals</h2>
+<ul>
+{% for device in devices %}
+    <li>
+        User: {{ device.user.username }} |
+        User-Agent: {{ device.user_agent }} |
+        IP: {{ device.ip_address }} |
+        <a href="{{ url_for('admin.approve_device', device_id=device.id) }}">Approve</a>
+    </li>
+{% else %}
+    <li>No pending devices.</li>
+{% endfor %}
+</ul>
+
       <p>Pending Approvals</p>
     </div>
   </div>

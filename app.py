@@ -6,6 +6,9 @@ from booking import booking_bp
 from compliance import compliance_bp
 from resources import resources_bp
 from admin import admin_bp   
+import os
+print("DB path:", os.path.abspath("deskhop.db"))
+
 
 
 app = Flask(__name__)
@@ -31,7 +34,8 @@ app.register_blueprint(auth_bp, url_prefix="/auth")
 app.register_blueprint(booking_bp, url_prefix="/booking")
 app.register_blueprint(compliance_bp, url_prefix="/device")
 app.register_blueprint(resources_bp, url_prefix="/resources")
-app.register_blueprint(admin_bp, url_prefix="/admin")  # 👈 this one’s new!
+app.register_blueprint(admin_bp, url_prefix="/admin") 
+
 
 if __name__ == "__main__":
     with app.app_context():

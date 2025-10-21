@@ -1,8 +1,21 @@
-<h2>Your Dashboard</h2>
-<a href="/book">Book a Desk</a> | <a href="/logout">Logout</a>
-<h3>Your Bookings:</h3>
-<ul>
-    {% for booking in bookings %}
-        <li>Desk {{ booking.desk_number }} on {{ booking.date }}</li>
-    {% endfor %}
-</ul>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, {{ current_user.username }}</h1>
+    <h2>Your Bookings</h2>
+    {% if bookings %}
+        <ul>
+        {% for b in bookings %}
+            <li>Desk {{ b.desk_number }} - {{ b.date }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No bookings yet.</p>
+    {% endif %}
+    <a href="{{ url_for('booking.book') }}">Book a Desk</a><br>
+    <a href="/">Home</a>
+</body>
+</html>
