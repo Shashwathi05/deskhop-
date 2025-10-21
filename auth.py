@@ -12,18 +12,19 @@ def login():
         password = request.form['password']
 
         user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(user.password_hash, password):
-
+        if user and check_password_hash(user.password, password):
             user_agent = request.headers.get('User-Agent')
             ip_address = request.remote_addr
 
-            # Check if device exists
+            # find device
             device = Device.query.filter_by(user_id=user.id, user_agent=user_agent).first()
             if not device:
+                # new device = not compliant
                 device = Device(user_id=user.id, user_agent=user_agent, ip_address=ip_address, compliant=False)
                 db.session.add(device)
                 db.session.commit()
 
+            # Zero Trust check
             if not device.compliant:
               return render_template('device_not_approved.html')
 
