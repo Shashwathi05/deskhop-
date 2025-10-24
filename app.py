@@ -9,8 +9,6 @@ from admin import admin_bp
 import os
 print("DB path:", os.path.abspath("deskhop.db"))
 
-
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///deskhop.db'
@@ -31,10 +29,10 @@ def home():
 
 # ✅ Register all blueprints
 app.register_blueprint(auth_bp, url_prefix="/auth")
+app.register_blueprint(admin_bp, url_prefix="/admin") 
 app.register_blueprint(booking_bp, url_prefix="/booking")
 app.register_blueprint(compliance_bp, url_prefix="/device")
 app.register_blueprint(resources_bp, url_prefix="/resources")
-app.register_blueprint(admin_bp, url_prefix="/admin") 
 
 
 if __name__ == "__main__":
