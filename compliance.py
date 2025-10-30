@@ -7,18 +7,17 @@ compliance_bp = Blueprint('compliance', __name__)
 @compliance_bp.route('/devices')
 @login_required
 def list_devices():
-    if not current_user.is_admin:
-        return "Access denied."
+    if not current_user.isadmin:
+        return "Access denied", 403
     devices = Device.query.all()
     return render_template('devices.html', devices=devices)
 
-@compliance_bp.route('/approve/<int:device_id>')
+@compliance_bp.route('/approve/<int:deviceid>')
 @login_required
-def approve_device(device_id):
-    if not current_user.is_admin:
-        return "Access denied."
-    device = Device.query.get(device_id)
-    if device:
-        device.compliant = True
-        db.session.commit()
+def approve_device(deviceid):
+    if not current_user.isadmin:
+        return "Access denied", 403
+    device = Device.query.get(deviceid)
+    device.compliant = True
+    db.session.commit()
     return redirect(url_for('compliance.list_devices'))
