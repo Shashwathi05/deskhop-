@@ -10,7 +10,8 @@ class User(db.Model, UserMixin):
     emp_id = db.Column(db.String(50))
     is_approved = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
-    devices = db.relationship('Device', backref='owner', lazy=True)
+    
+    devices = db.relationship('Device', back_populates='user')
 
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -21,6 +22,7 @@ class Device(db.Model):
     user_agent = db.Column(db.String(300))
     ip_address = db.Column(db.String(100))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', back_populates='devices')
 
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -3,6 +3,8 @@ from flask_login import login_user
 from werkzeug.security import check_password_hash
 from models import db, User, Device
 from werkzeug.security import generate_password_hash, check_password_hash
+import platform
+import psutil
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -56,13 +58,17 @@ def login():
         useragent = request.headers.get('User-Agent')
         ip = request.remote_addr
         device = Device.query.filter_by(user_id=user.id, user_agent=useragent).first()
-
+        is_compliant = check_compliance()
+        
         if not device:
             device = Device(user_id=user.id, user_agent=useragent, ip_address=ip, compliant=False)
             db.session.add(device)
             db.session.commit()
+        else:
+            device.compliant = is_compliant
+        db.session.commit()    
 
-        session['deviceid'] = device.id
+        session['device_id'] = device.id
 
         # Admin shortcut — skip compliance
         if user.is_admin:
@@ -76,6 +82,12 @@ def login():
 
     return render_template('login.html')
 
+
+def check_compliance():
+    # Example conditions
+    os_ok = platform.system() in ["Windows", "Linux", "Darwin"]  # allow major OS
+    mem_ok = psutil.virtual_memory().total > 2 * 1024 * 1024 * 1024  # at least 2GB RAM
+    return os_ok and mem_ok
 
 @auth_bp.route('/logout')
 def logout():

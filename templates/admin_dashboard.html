@@ -71,7 +71,7 @@
       <ul>
         {% for device in devices %}
           <li>
-            User: {{ device.owner.username }}<br>
+            User: {{ device.user.username }}<br>
             UA: {{ device.user_agent }}<br>
             IP: {{ device.ip_address }}<br>
             <a class="btn" href="{{ url_for('admin.approve_device', device_id=device.id) }}"class="btn btn-success btn-sm">Approve</a>
