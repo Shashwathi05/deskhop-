@@ -1,11 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
     <title>Device Not Approved</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: lavenderblush;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px 40px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h2 {
+            color: #cc0000;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        a {
+            display: inline-block;
+            text-decoration: none;
+            background-color: green;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        a:hover {
+            background-color: darkgreen;
+        }
+    </style>
 </head>
 <body>
-    <h2>⚠️ Device Not Approved</h2>
-    <p>Your device is not approved. Please contact the admin.</p>
-    <a href="{{ url_for('auth.login') }}">Go back to login</a>
+    <div class="container">
+        <h2>⚠️ Device Not Approved</h2>
+        <p>Your device is not approved. Please contact the admin.</p>
+        <a href ="login.html"> Go back to login </a>
+    </div>
 </body>
 </html>
