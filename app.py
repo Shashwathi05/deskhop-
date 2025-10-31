@@ -58,7 +58,7 @@ if __name__ == "__main__":
             print("✨ Default admin created: username='admin', password='admin123'")
         else:
             print("✅ Admin user already exists!")
-   
+
         # (Optional) Show pending users and devices for debugging
         pending_users = User.query.filter_by(is_approved=False).all()
         if pending_users:

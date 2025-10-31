@@ -3,39 +3,110 @@
 <head>
   <title>Admin Dashboard</title>
   <style>
-    body { font-family: Arial; background: #fafafa; text-align: center; }
-    h1 { color: #333; }
-    .stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; margin: 30px; }
-    .card {
-      padding: 20px; border-radius: 12px;
-      background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 350px;
-      text-align: left;
+    body {
+      font-family: Arial, sans-serif;
+      background-color: lavenderblush;
+      text-align: center;
+      padding: 40px;
+      margin: 0;
     }
-    h2 { color: #007bff; }
+
+    h1 {
+      color: #222;
+      font-size: 2.2em;
+      margin-bottom: 30px;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      margin: 0 auto;
+      max-width: 1000px;
+    }
+
+    .card {
+      background-color: white;
+      padding: 25px 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+      width: 320px;
+      text-align: left;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    h2 {
+      color: darkmagenta;
+      font-size: 1.4em;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: #333;
+      font-size: 15px;
+      margin-top: 0;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0 0;
+    }
+
+    li {
+      background-color: #f8f0f8;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: left;
+      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+
     a.btn {
       display: inline-block;
-      margin-top: 10px;
+      margin-top: 8px;
       color: white;
-      background: #007bff;
-      padding: 8px 14px;
+      background-color: darkmagenta;
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 13px;
+      transition: background-color 0.3s;
+    }
+
+    a.btn:hover {
+      background-color: purple;
+    }
+
+    .footer-btn {
+      display: inline-block;
+      margin-top: 40px;
+      background-color: darkmagenta;
+      color: white;
+      padding: 10px 20px;
       border-radius: 8px;
       text-decoration: none;
-      font-size: 14px;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
     }
-    a.btn:hover { background: #0056b3; }
-    ul { list-style: none; padding: 0; }
-    li {
-      background: #f1f1f1;
-      margin: 6px 0;
-      padding: 8px;
-      border-radius: 6px;
-      font-size: 14px;
+
+    .footer-btn:hover {
+      background-color: purple;
     }
+
   </style>
 </head>
 <body>
   <h1>🛡 Admin Dashboard</h1>
+
   <div class="stats">
 
     <!-- USERS SUMMARY -->
@@ -57,6 +128,7 @@
         {% for user in pending_users %}
           <li>
             {{ user.username }} 
+            <br>
             <a class="btn" href="{{ url_for('admin.approve_user', user_id=user.id) }}">Approve</a>
           </li>
         {% else %}
@@ -66,24 +138,26 @@
     </div>
 
     <!-- PENDING DEVICE APPROVALS -->
-    <div class="card">
-      <h2>Pending Device Approvals</h2>
-      <ul>
-        {% for device in devices %}
-          <li>
-            User: {{ device.user.username }}<br>
-            UA: {{ device.user_agent }}<br>
-            IP: {{ device.ip_address }}<br>
-            <a class="btn" href="{{ url_for('admin.approve_device', device_id=device.id) }}"class="btn btn-success btn-sm">Approve</a>
-          </li>
-        {% else %}
-          <li>No pending devices.</li>
-        {% endfor %}
-      </ul>
-    </div>
+<div class="card">
+  <h2>Pending Device Approvals</h2>
+  <ul>
+    {% for device in devices %}
+      <li>
+        User: {{ device.user.username }}<br>
+        UA: {{ device.user_agent }}<br>
+        IP: {{ device.ip_address }}<br>
+        <a class="btn" href="{{ url_for('admin.approve_device', device_id=device.id) }}">Approve</a>
+      </li>
+    {% else %}
+      <li>No pending devices.</li>
+    {% endfor %}
+  </ul>
+</div>
+
+
 
   </div>
 
-  <a class="btn" href="{{ url_for('admin.view_devices') }}">Manage Devices</a>
+  <a class="footer-btn" href="{{ url_for('admin.view_devices') }}">Manage Devices</a>
 </body>
 </html>

@@ -39,17 +39,14 @@ def approve_user(user_id):
 def approve_device(device_id):
     if not current_user.is_admin:
         return "Access denied", 403
+
     device = Device.query.get_or_404(device_id)
+    device.compliant = True
+    db.session.commit()
 
-    # Example compliance checks
-    if device.antivirus_installed and "Windows 10" in device.os_version:
-        device.compliant = True
-        db.session.commit()
-        flash(f"Device {device.name} approved.", "success")
-    else:
-        flash("Device does not meet compliance requirements.", "error")
-
+    flash(f"Device {device.name or device.id} approved successfully!", "success")
     return redirect(url_for('admin.dashboard'))
+
 
 
 @admin_bp.route('/pending_users')
