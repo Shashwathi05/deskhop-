@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Isolated Workspace</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+
+    #workspace {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      width: 100%;
+      background-color: #fff;
+      border: 2px solid #333;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    button {
+      padding: 12px 25px;
+      margin: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+<div id="workspace">
+  <h1>Welcome to Your Isolated Workspace</h1>
+  <p>Please stay in this environment until your session is complete.</p>
+  <button id="enter-fullscreen">Enter Fullscreen & Start Session</button>
+  <form action="{{ url_for('booking.end_session') }}" method="get">
+    <button type="submit">End Session</button>
+  </form>
+</div>
+
+<script>
+  const workspace = document.getElementById('workspace');
+  const fullscreenBtn = document.getElementById('enter-fullscreen');
+
+  // Fullscreen trigger
+  fullscreenBtn.addEventListener('click', () => {
+    if (workspace.requestFullscreen) {
+      workspace.requestFullscreen();
+    } else if (workspace.webkitRequestFullscreen) {
+      workspace.webkitRequestFullscreen();
+    } else if (workspace.msRequestFullscreen) {
+      workspace.msRequestFullscreen();
+    }
+    fullscreenBtn.style.display = 'none'; // hide button after click
+  });
+
+  // Disable right click
+  window.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    alert("Right-click is disabled in this workspace!");
+  });
+
+// Auto-end session on fullscreen exit
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        window.location.href = "{{ url_for('booking.end_session') }}";
+    }
+});
+
+</script>
+
+</body>
+</html>

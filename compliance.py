@@ -17,9 +17,17 @@ def list_devices():
 def approve_device(device_id):
     if not current_user.is_admin:
         return "Access denied", 403
-    device = Device.query.get(device_id)
-    if device:
-        device.compliant = True
+
+    device = Device.query.get_or_404(device_id)
+    user = device.user
+
+    device.compliant = True
+    db.session.commit()
+
+    # auto-approve user if not approved
+    if not user.is_approved:
+        user.is_approved = True
         db.session.commit()
-        flash(f"Device {device_id} approved successfully!", "success")
+
+    flash(f"✅ Device {device.name or device.id} approved successfully!", "success")
     return redirect(url_for('compliance.list_devices'))

@@ -1,0 +1,49 @@
+<!-- device_register.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Register Device</title>
+  <style> body{font-family: Arial; background: lavenderblush; padding:40px;} .box{background:white;padding:20px;border-radius:8px;} </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Register this device for BYOD access</h2>
+    <p>We will collect basic device info from your browser for admin approval.</p>
+    <div id="msg">Collecting info...</div>
+  </div>
+
+<script>
+async function collectInfo(){
+    const info = {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        cpuThreads: navigator.hardwareConcurrency || 0,
+        screen: `${screen.width}x${screen.height}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+        name: `${navigator.platform} - ${screen.width}x${screen.height}`,
+        osVersion: navigator.userAgent // simple fallback
+    };
+
+    try {
+        const res = await fetch("{{ url_for('byod.register_device') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(info),
+            credentials: "same-origin"
+        });
+        const j = await res.json();
+        document.getElementById('msg').innerText = "Device registration submitted. Status: " + (j.status || 'ok');
+        // After registering, redirect to dashboard or wait for admin approval
+        setTimeout(()=> {
+            window.location.href = "{{ url_for('booking.dashboard') }}";
+        }, 900);
+    } catch (e) {
+        document.getElementById('msg').innerText = "Registration failed: " + e.toString();
+    }
+}
+
+collectInfo();
+</script>
+</body>
+</html>

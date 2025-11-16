@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Loading Workspace</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: lavenderblush;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Preparing your workspace...</h2>
+
+<script>
+    // Auto redirect to fullscreen page immediately
+    setTimeout(() => {
+        window.location.href = "{{ url_for('booking.fullscreen_workspace', booking_id=booking.id) }}";
+    }, 500);
+</script>
+
+</body>
+</html>

@@ -4,65 +4,85 @@ from models import db, Device, User
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
+# --------------------------------------------------------------------
+# ADMIN DASHBOARD
+# --------------------------------------------------------------------
 @admin_bp.route('/dashboard')
 @login_required
 def dashboard():
     if not current_user.is_admin:
         return "Access denied", 403
 
-    pending_users = User.query.filter_by(is_approved=False).all()
-    pending_devices = Device.query.filter_by(compliant=False).all()
-    total_users = User.query.count()
-    total_devices = Device.query.count()
+    # Pending users
+    users = User.query.filter_by(is_approved=False).all()
 
-    return render_template(
-        'admin_dashboard.html',
-        users=total_users,
-        total=total_devices,
-        pending_users=pending_users,
-        devices=pending_devices
-    )
+    # Pending + Rejected devices (anything not Approved)
+    devices = Device.query.filter(Device.status != "Approved").all()
 
-@admin_bp.route('/approve_user/<int:user_id>')
+    return render_template("admin_dashboard.html", users=users, devices=devices)
+
+# --------------------------------------------------------------------
+# APPROVE USER
+# --------------------------------------------------------------------
+@admin_bp.route('/approve_user/<int:user_id>', methods=['POST'])
 @login_required
 def approve_user(user_id):
     if not current_user.is_admin:
         return "Access denied", 403
+
     user = User.query.get_or_404(user_id)
     user.is_approved = True
     db.session.commit()
-    flash(f"Approved user {user.username}", "success")
+
+    flash(f"User '{user.username}' approved.", "success")
     return redirect(url_for('admin.dashboard'))
 
-@admin_bp.route('/approve_device/<int:device_id>')
+# --------------------------------------------------------------------
+# REJECT USER
+# --------------------------------------------------------------------
+@admin_bp.route('/reject_user/<int:user_id>', methods=['POST'])
+@login_required
+def reject_user(user_id):
+    if not current_user.is_admin:
+        return "Access denied", 403
+
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+
+    flash("User rejected.", "danger")
+    return redirect(url_for('admin.dashboard'))
+
+# --------------------------------------------------------------------
+# APPROVE DEVICE
+# --------------------------------------------------------------------
+@admin_bp.route('/approve_device/<int:device_id>', methods=['POST'])
 @login_required
 def approve_device(device_id):
     if not current_user.is_admin:
         return "Access denied", 403
 
     device = Device.query.get_or_404(device_id)
+    device.status = "Approved"
     device.compliant = True
     db.session.commit()
 
-    flash(f"Device {device.name or device.id} approved successfully!", "success")
+    flash(f"Device '{device.name or device.id}' approved.", "success")
     return redirect(url_for('admin.dashboard'))
 
-
-
-@admin_bp.route('/pending_users')
+# --------------------------------------------------------------------
+# REJECT DEVICE
+# --------------------------------------------------------------------
+@admin_bp.route('/reject_device/<int:device_id>', methods=['POST'])
 @login_required
-def pending_users():
+def reject_device(device_id):
     if not current_user.is_admin:
         return "Access denied", 403
 
-    users = User.query.filter_by(is_approved=False).all()
-    return render_template('pending_users.html', users=users)
+    device = Device.query.get_or_404(device_id)
+    device.status = "Rejected"
+    device.compliant = False
+    db.session.commit()
 
-
-@admin_bp.route('/devices')
-@login_required
-def view_devices():
-    if not current_user.is_admin:
-        return "Access denied", 403
-    devices = Device.query.all()
-    return render_template('devices.html', devices=devices)
+    flash("Device rejected.", "danger")
+    return redirect(url_for('admin.dashboard'))

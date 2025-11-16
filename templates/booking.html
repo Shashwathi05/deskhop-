@@ -5,11 +5,13 @@
 </head>
 <body>
     <h2>Book a Desk</h2>
+
     <form method="POST">
-        Desk Number: <input type="number" name="desk_number" required><br>
-        Date: <input type="date" name="date" required><br>
+        Desk Number: <input type="number" name="desk_number" required><br><br>
+        Date: <input type="date" name="date" required><br><br>
         <button type="submit">Book</button>
     </form>
+
     <a href="{{ url_for('booking.dashboard') }}">Back to Dashboard</a>
 </body>
 </html>

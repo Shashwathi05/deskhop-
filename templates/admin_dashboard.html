@@ -1,163 +1,142 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin Dashboard</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: lavenderblush;
-      text-align: center;
-      padding: 40px;
-      margin: 0;
-    }
+    <title>Admin Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
 
-    h1 {
-      color: #222;
-      font-size: 2.2em;
-      margin-bottom: 30px;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+        table, th, td {
+            border: 1px solid #bbb;
+        }
+        th, td {
+            padding: 10px;
+        }
 
-    .stats {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 30px;
-      margin: 0 auto;
-      max-width: 1000px;
-    }
+        .approve-btn {
+            padding: 6px 10px;
+            background: green;
+            color: white;
+            border-radius: 4px;
+            border: none;
+        }
+        .reject-btn {
+            padding: 6px 10px;
+            background: red;
+            color: white;
+            border-radius: 4px;
+            border: none;
+        }
 
-    .card {
-      background-color: white;
-      padding: 25px 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
-      width: 320px;
-      text-align: left;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
-    }
-
-    h2 {
-      color: darkmagenta;
-      font-size: 1.4em;
-      margin-bottom: 8px;
-    }
-
-    p {
-      color: #333;
-      font-size: 15px;
-      margin-top: 0;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      margin: 10px 0 0 0;
-    }
-
-    li {
-      background-color: #f8f0f8;
-      margin: 8px 0;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 14px;
-      text-align: left;
-      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
-    }
-
-    a.btn {
-      display: inline-block;
-      margin-top: 8px;
-      color: white;
-      background-color: darkmagenta;
-      padding: 6px 12px;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 13px;
-      transition: background-color 0.3s;
-    }
-
-    a.btn:hover {
-      background-color: purple;
-    }
-
-    .footer-btn {
-      display: inline-block;
-      margin-top: 40px;
-      background-color: darkmagenta;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: bold;
-      transition: background-color 0.3s ease;
-    }
-
-    .footer-btn:hover {
-      background-color: purple;
-    }
-
-  </style>
+        .high-risk { font-weight: bold; color: red; }
+        .medium-risk { font-weight: bold; color: orange; }
+        .low-risk { font-weight: bold; color: green; }
+    </style>
 </head>
+
 <body>
-  <h1>🛡 Admin Dashboard</h1>
 
-  <div class="stats">
+<h2>Admin Dashboard</h2>
+<p>Welcome, Admin {{ current_user.username }}!</p>
 
-    <!-- USERS SUMMARY -->
-    <div class="card">
-      <h2>{{ users }}</h2>
-      <p>Total Users</p>
-    </div>
+<hr>
 
-    <!-- DEVICES SUMMARY -->
-    <div class="card">
-      <h2>{{ total }}</h2>
-      <p>Total Devices</p>
-    </div>
+<!-- USER APPROVAL TABLE -->
+<h3>Pending User Approvals</h3>
 
-    <!-- PENDING USER APPROVALS -->
-    <div class="card">
-      <h2>Pending User Approvals</h2>
-      <ul>
-        {% for user in pending_users %}
-          <li>
-            {{ user.username }} 
-            <br>
-            <a class="btn" href="{{ url_for('admin.approve_user', user_id=user.id) }}">Approve</a>
-          </li>
-        {% else %}
-          <li>No pending users.</li>
-        {% endfor %}
-      </ul>
-    </div>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Approve</th>
+        <th>Reject</th>
+    </tr>
 
-    <!-- PENDING DEVICE APPROVALS -->
-<div class="card">
-  <h2>Pending Device Approvals</h2>
-  <ul>
-    {% for device in devices %}
-      <li>
-        User: {{ device.user.username }}<br>
-        UA: {{ device.user_agent }}<br>
-        IP: {{ device.ip_address }}<br>
-        <a class="btn" href="{{ url_for('admin.approve_device', device_id=device.id) }}">Approve</a>
-      </li>
-    {% else %}
-      <li>No pending devices.</li>
+    {% for user in users %}
+    <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.username }}</td>
+
+        <td>
+            <form action="{{ url_for('admin.approve_user', user_id=user.id) }}" method="post">
+                <button type="submit" class="approve-btn">Approve</button>
+            </form>
+        </td>
+
+        <td>
+            <form action="{{ url_for('admin.reject_user', user_id=user.id) }}" method="post">
+                <button type="submit" class="reject-btn">Reject</button>
+            </form>
+        </td>
+    </tr>
     {% endfor %}
-  </ul>
-</div>
+</table>
 
+<hr>
 
+<!-- DEVICE APPROVAL TABLE -->
+<h3>BYOD Device Approvals</h3>
 
-  </div>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Name</th>
+        <th>Platform</th>
+        <th>Screen</th>
+        <th>CPU Threads</th>
+        <th>Timezone</th>
+        <th>Fingerprint</th>
+        <th>IP</th>
+        <th>Risk</th>
+        <th>Status</th>
+        <th>Approve</th>
+        <th>Reject</th>
+    </tr>
 
-  <a class="footer-btn" href="{{ url_for('admin.view_devices') }}">Manage Devices</a>
+    {% for device in devices %}
+    <tr>
+        <td>{{ device.id }}</td>
+        <td>{{ device.user.username }}</td>
+        <td>{{ device.name }}</td>
+        <td>{{ device.platform or device.os_version }}</td>
+        <td>{{ device.screen or "—" }}</td>
+        <td>{{ device.cpu_threads or "—" }}</td>
+        <td>{{ device.timezone or "—" }}</td>
+        <td>{{ device.fingerprint }}</td>
+        <td>{{ device.ip_address }}</td>
+
+        <td class="
+            {% if device.risk_score >= 40 %}high-risk
+            {% elif device.risk_score >= 20 %}medium-risk
+            {% else %}low-risk
+            {% endif %}
+        ">
+            {{ device.risk_score }}
+        </td>
+
+        <td>{{ device.status }}</td>
+
+        <td>
+            <form action="{{ url_for('admin.approve_device', device_id=device.id) }}" method="post">
+                <button type="submit" class="approve-btn">Approve</button>
+            </form>
+        </td>
+
+        <td>
+            <form action="{{ url_for('admin.reject_device', device_id=device.id) }}" method="post">
+                <button type="submit" class="reject-btn">Reject</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<a href="{{ url_for('auth.logout') }}">Logout</a>
+
 </body>
 </html>

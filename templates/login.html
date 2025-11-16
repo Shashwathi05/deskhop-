@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Login</title>
@@ -17,6 +17,7 @@
       border-radius: 8px;
       display: inline-block;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      width: 300px;
     }
 
     h2 {
@@ -27,15 +28,15 @@
     input {
       padding: 8px;
       margin: 8px 0;
-      width: 220px;
+      width: 100%;
       border: 1px solid #ccc;
       border-radius: 4px;
-      display: block;
+      box-sizing: border-box;
     }
 
     button {
       padding: 8px 15px;
-      margin: 10px;
+      margin-top: 10px;
       background-color: green;
       color: white;
       border: none;
@@ -43,6 +44,7 @@
       cursor: pointer;
       font-weight: bold;
       transition: background-color 0.3s ease;
+      width: 100%;
     }
 
     button:hover {
@@ -64,22 +66,51 @@
     a:hover {
       background-color: darkgreen;
     }
+
+    /* Flash message styles */
+    .flash-message {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .flash-success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .flash-danger {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .flash-warning {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .flash-info {
+      background-color: #cce5ff;
+      color: #004085;
+    }
   </style>
 </head>
 <body>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-
   <div class="form-container">
     <h2>Login</h2>
+
+    <!-- Display flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
     <form method="POST" action="{{ url_for('auth.login') }}">
       <input type="text" name="username" placeholder="Username" required>
       <input type="password" name="password" placeholder="Password" required>
