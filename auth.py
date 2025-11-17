@@ -52,44 +52,53 @@ def login():
             flash("Invalid username.", "danger")
             return redirect(url_for('auth.login'))
 
+        # password check
         if not check_password_hash(user.password_hash, password):
             flash("Incorrect password.", "danger")
             return redirect(url_for('auth.login'))
 
+        # ADMIN bypass all device checks
+        if user.is_admin:
+            login_user(user)
+            session['user_id'] = user.id
+            flash("Admin login successful!", "success")
+            return redirect(url_for('admin.dashboard'))
+
+        # USER approval check
         if not user.is_approved:
             flash("Your account is waiting for admin approval.", "warning")
             return redirect(url_for('auth.login'))
 
-        login_user(user)
-        session['user_id'] = user.id
+        # Latest device
+        device = Device.query.filter_by(user_id=user.id).order_by(Device.id.desc()).first()
 
-        # Admin login redirect
-        if user.is_admin:
-            return redirect(url_for('admin.dashboard'))
-
-        # Device check
-        approved_device = Device.query.filter_by(
-            user_id=user.id,
-            compliant=True,
-            status="Approved"
-        ).first()
-
-        if not approved_device:
-            pending = Device.query.filter_by(user_id=user.id).filter(Device.status != "Approved").first()
-
-            if pending:
-                flash("Your device approval is pending.", "info")
-                return redirect(url_for('booking.dashboard'))
-
+        # No device yet
+        if not device:
+            flash("Register your device first.", "info")
             return redirect(url_for('byod.register_page'))
 
-        session['device_id'] = approved_device.id
+        # Device status handling
+        if device.status == "Rejected":
+            flash("Your device was rejected by admin. Re-register.", "danger")
+            return redirect(url_for('byod.register_page'))
+
+        if device.status == "Pending":
+            flash("Your device approval is still pending.", "warning")
+            return redirect(url_for('auth.login'))
+
+        if device.status != "Approved":
+            flash("Unknown device status. Please re-register.", "danger")
+            return redirect(url_for('byod.register_page'))
+
+        # Safe to login user
+        login_user(user)
+        session['user_id'] = user.id
+        session['device_id'] = device.id
 
         flash("Login successful!", "success")
         return redirect(url_for('booking.dashboard'))
 
     return render_template('login.html')
-
 
 # ------------------------------
 # SIGNUP (Alternative)

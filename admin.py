@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, Device, User
+from models import db, User, Device
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -13,10 +13,7 @@ def dashboard():
     if not current_user.is_admin:
         return "Access denied", 403
 
-    # Pending users
     users = User.query.filter_by(is_approved=False).all()
-
-    # Pending + Rejected devices (anything not Approved)
     devices = Device.query.filter(Device.status != "Approved").all()
 
     return render_template("admin_dashboard.html", users=users, devices=devices)
@@ -54,7 +51,7 @@ def reject_user(user_id):
     return redirect(url_for('admin.dashboard'))
 
 # --------------------------------------------------------------------
-# APPROVE DEVICE
+# APPROVE DEVICE  **FIXED**
 # --------------------------------------------------------------------
 @admin_bp.route('/approve_device/<int:device_id>', methods=['POST'])
 @login_required
@@ -71,7 +68,7 @@ def approve_device(device_id):
     return redirect(url_for('admin.dashboard'))
 
 # --------------------------------------------------------------------
-# REJECT DEVICE
+# REJECT DEVICE  **FIXED**
 # --------------------------------------------------------------------
 @admin_bp.route('/reject_device/<int:device_id>', methods=['POST'])
 @login_required

@@ -1,17 +1,12 @@
-# byod.py
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 from models import db, Device, User
 import hashlib
-import json
 from datetime import datetime
 
 byod_bp = Blueprint('byod', __name__, url_prefix='/device')
 
 def calc_fingerprint(payload: dict) -> str:
-    """
-    Deterministic fingerprint using selected fields.
-    """
     raw = (
         (payload.get('userAgent') or '') +
         (payload.get('platform') or '') +
@@ -21,22 +16,16 @@ def calc_fingerprint(payload: dict) -> str:
     )
     return hashlib.sha256(raw.encode()).hexdigest()
 
-
 def risk_score_from(payload: dict) -> int:
-    """
-    Very simple heuristic-based risk scoring.
-    Higher number = more suspicious.
-    """
     score = 0
-
     ua = (payload.get('userAgent') or '').lower()
+
     if "headless" in ua or "phantom" in ua or "selenium" in ua:
         score += 50
 
-    # tiny screens and single core CPUs often are bots
     try:
         cpu = int(payload.get('cpuThreads') or 0)
-    except Exception:
+    except:
         cpu = 0
 
     screen = payload.get('screen') or ''
@@ -45,15 +34,13 @@ def risk_score_from(payload: dict) -> int:
             w, h = map(int, screen.split('x'))
             if w <= 800 or h <= 600:
                 score += 10
-        except Exception:
+        except:
             pass
 
     if cpu <= 1:
         score += 10
     if payload.get('timezone') in (None, '', 'UTC'):
         score += 5
-
-    # older browsers detection (very naive)
     if "msie" in ua or "trident" in ua:
         score += 10
 
@@ -61,22 +48,21 @@ def risk_score_from(payload: dict) -> int:
 
 
 # -----------------------
-# API: client sends device info (JSON)
+# DEVICE REGISTER
 # -----------------------
 @byod_bp.route('/register', methods=['POST'])
 @login_required
 def register_device():
-    """
-    Accepts JSON payload from client with device info; creates Device entry pending approval.
-    """
-    payload = request.get_json() or {}
-    # server-side IP
-    ip = request.remote_addr
 
+    # ✔ BLOCK DEVICE REGISTRATION FOR UNAPPROVED USERS
+    if not current_user.is_approved:
+        return jsonify({"error": "User not approved"}), 403
+
+    payload = request.get_json() or {}
+    ip = request.remote_addr
     fp = calc_fingerprint(payload)
     score = risk_score_from(payload)
 
-    # if fingerprint already exists for this user, update/refresh info instead of creating duplicate
     existing = Device.query.filter_by(user_id=current_user.id, fingerprint=fp).first()
     if existing:
         existing.user_agent = payload.get('userAgent')
@@ -86,12 +72,16 @@ def register_device():
         existing.timezone = payload.get('timezone')
         existing.ip_address = ip
         existing.risk_score = score
-        existing.status = existing.status or 'Pending'
+
+        # ✔ IF was rejected, revert to pending
+        if existing.status == "Rejected":
+            existing.status = "Pending"
+            existing.compliant = False
+
         existing.updated_at = datetime.utcnow()
         db.session.commit()
         return jsonify({"status": "updated", "device_id": existing.id})
 
-    # create new device row
     d = Device(
         name=payload.get('name') or f"Device_{current_user.id}",
         os_version=payload.get('osVersion') or payload.get('platform'),
@@ -112,16 +102,14 @@ def register_device():
     return jsonify({"status": "created", "device_id": d.id})
 
 
-# -----------------------
-# UI: show registration page (for web flow)
-# -----------------------
 @byod_bp.route('/register_page')
 @login_required
 def register_page():
-    """
-    Renders a page that runs device-collection JS which posts to /device/register.
-    """
-    # if user already has an approved device, redirect
+    # ✔ PREVENT unapproved users from accessing device page
+    if not current_user.is_approved:
+        flash("Your account is waiting for admin approval.", "warning")
+        return redirect(url_for('booking.dashboard'))
+
     ok = Device.query.filter_by(user_id=current_user.id, compliant=True).first()
     if ok:
         flash("You already have an approved device.", "info")
@@ -130,9 +118,6 @@ def register_page():
     return render_template('device_register.html')
 
 
-# -----------------------
-# Admin: list device requests (for admin dashboard)
-# -----------------------
 @byod_bp.route('/admin_list')
 @login_required
 def admin_list():
@@ -142,9 +127,6 @@ def admin_list():
     return render_template('admin_device_list.html', devices=devices)
 
 
-# -----------------------
-# Admin approve / reject (POST only)
-# -----------------------
 @byod_bp.route('/approve/<int:device_id>', methods=['POST'])
 @login_required
 def admin_approve(device_id):
