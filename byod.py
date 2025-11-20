@@ -50,21 +50,23 @@ def risk_score_from(payload: dict) -> int:
 # -----------------------
 # DEVICE REGISTER
 # -----------------------
+# byod.py - REVISED
 @byod_bp.route('/register', methods=['POST'])
 @login_required
 def register_device():
-
-    # ✔ BLOCK DEVICE REGISTRATION FOR UNAPPROVED USERS
-    if not current_user.is_approved:
-        return jsonify({"error": "User not approved"}), 403
-
+    # ✅ Remove the approval check - let users register devices even if not approved yet
+    # The admin will approve both together
+    
     payload = request.get_json() or {}
     ip = request.remote_addr
     fp = calc_fingerprint(payload)
     score = risk_score_from(payload)
 
+    # Check if device with this fingerprint already exists for this user
     existing = Device.query.filter_by(user_id=current_user.id, fingerprint=fp).first()
+    
     if existing:
+        # Update existing device and reset to Pending if it was rejected
         existing.user_agent = payload.get('userAgent')
         existing.platform = payload.get('platform')
         existing.cpu_threads = payload.get('cpuThreads')
@@ -72,16 +74,13 @@ def register_device():
         existing.timezone = payload.get('timezone')
         existing.ip_address = ip
         existing.risk_score = score
-
-        # ✔ IF was rejected, revert to pending
-        if existing.status == "Rejected":
-            existing.status = "Pending"
-            existing.compliant = False
-
+        existing.status = "Pending"  # Always reset to pending
+        existing.compliant = False
         existing.updated_at = datetime.utcnow()
         db.session.commit()
         return jsonify({"status": "updated", "device_id": existing.id})
 
+    # Create new device
     d = Device(
         name=payload.get('name') or f"Device_{current_user.id}",
         os_version=payload.get('osVersion') or payload.get('platform'),
@@ -105,24 +104,15 @@ def register_device():
 @byod_bp.route('/register_page')
 @login_required
 def register_page():
-    # ✔ PREVENT unapproved users from accessing device page
-    if not current_user.is_approved:
-        flash("Your account is waiting for admin approval.", "warning")
-        return redirect(url_for('booking.dashboard'))
-
-    ok = Device.query.filter_by(user_id=current_user.id, compliant=True).first()
-    if ok:
-        flash("You already have an approved device.", "info")
-        return redirect(url_for('booking.dashboard'))
-
     return render_template('device_register.html')
+
 
 
 @byod_bp.route('/admin_list')
 @login_required
 def admin_list():
     if not current_user.is_admin:
-        return "Access denied", 403
+          return "Access denied", 403
     devices = Device.query.order_by(Device.id.desc()).all()
     return render_template('admin_device_list.html', devices=devices)
 
@@ -151,3 +141,5 @@ def admin_reject(device_id):
     db.session.commit()
     flash(f"Device {device.name or device.id} rejected.", "warning")
     return redirect(url_for('admin.dashboard'))
+
+

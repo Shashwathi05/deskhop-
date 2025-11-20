@@ -6,9 +6,10 @@ from models import db, User, Device
 auth_bp = Blueprint('auth', __name__)
 
 # ------------------------------
-# REGISTER
+# REGISTER / SIGNUP
 # ------------------------------
 @auth_bp.route('/register', methods=['GET', 'POST'])
+@auth_bp.route('/signup', methods=['GET', 'POST'])  # Added alias for signup
 def register():
     if request.method == 'POST':
         username = request.form['username']
@@ -20,13 +21,7 @@ def register():
             return redirect(url_for('auth.register'))
 
         hashed = generate_password_hash(password)
-
-        new_user = User(
-            username=username,
-            password_hash=hashed,
-            is_admin=False,
-            is_approved=False
-        )
+        new_user = User(username=username, password_hash=hashed, is_admin=False, is_approved=False)
 
         db.session.add(new_user)
         db.session.commit()
@@ -34,11 +29,12 @@ def register():
         flash("Registered successfully! Wait for admin approval.", "success")
         return redirect(url_for('auth.login'))
 
-    return render_template('register.html')
+    # Render signup.html for GET request
+    return render_template('signup.html')
 
 
 # ------------------------------
-# LOGIN
+# LOGIN (FULLY FIXED)
 # ------------------------------
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -48,49 +44,56 @@ def login():
 
         user = User.query.filter_by(username=username).first()
 
-        if not user:
-            flash("Invalid username.", "danger")
+        # Invalid login
+        if not user or not check_password_hash(user.password_hash, password):
+            flash("Invalid credentials.", "danger")
             return redirect(url_for('auth.login'))
 
-        # password check
-        if not check_password_hash(user.password_hash, password):
-            flash("Incorrect password.", "danger")
-            return redirect(url_for('auth.login'))
-
-        # ADMIN bypass all device checks
+        # -------------------------
+        # ADMIN LOGIN
+        # -------------------------
         if user.is_admin:
             login_user(user)
             session['user_id'] = user.id
             flash("Admin login successful!", "success")
             return redirect(url_for('admin.dashboard'))
 
-        # USER approval check
+        # -------------------------
+        # USER MUST BE APPROVED
+        # -------------------------
         if not user.is_approved:
             flash("Your account is waiting for admin approval.", "warning")
             return redirect(url_for('auth.login'))
 
-        # Latest device
-        device = Device.query.filter_by(user_id=user.id).order_by(Device.id.desc()).first()
+        # -------------------------
+        # NOW CHECK DEVICE (BEFORE LOGIN)
+        # -------------------------
+        device = Device.query.filter_by(user_id=user.id)\
+                             .order_by(Device.created_at.desc())\
+                             .first()
 
-        # No device yet
+        # No device registered
         if not device:
-            flash("Register your device first.", "info")
-            return redirect(url_for('byod.register_page'))
+            flash("Please register your device first.", "info")
+            return render_template('login.html')
 
-        # Device status handling
+
+
+        # Rejected device
         if device.status == "Rejected":
-            flash("Your device was rejected by admin. Re-register.", "danger")
+            login_user(user)
+            session['user_id'] = user.id
+            flash("Your previous device was rejected. Please re-register.", "warning")
             return redirect(url_for('byod.register_page'))
 
+        # Pending device
         if device.status == "Pending":
-            flash("Your device approval is still pending.", "warning")
+            flash("Your device approval is pending.", "warning")
             return redirect(url_for('auth.login'))
 
-        if device.status != "Approved":
-            flash("Unknown device status. Please re-register.", "danger")
-            return redirect(url_for('byod.register_page'))
-
-        # Safe to login user
+        # -------------------------
+        # DEVICE APPROVED
+        # -------------------------
         login_user(user)
         session['user_id'] = user.id
         session['device_id'] = device.id
@@ -99,32 +102,6 @@ def login():
         return redirect(url_for('booking.dashboard'))
 
     return render_template('login.html')
-
-# ------------------------------
-# SIGNUP (Alternative)
-# ------------------------------
-@auth_bp.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-
-        hashed = generate_password_hash(password)
-
-        new_user = User(
-            username=username,
-            password_hash=hashed,
-            is_approved=False
-        )
-
-        db.session.add(new_user)
-        db.session.commit()
-
-        flash("Account created! Wait for admin approval.", "success")
-        return redirect(url_for('auth.login'))
-
-    return render_template('signup.html')
-
 
 # ------------------------------
 # LOGOUT

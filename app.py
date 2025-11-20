@@ -4,7 +4,6 @@ from models import db, User
 from auth import auth_bp
 from booking import booking_bp
 from compliance import compliance_bp
-from resources import resources_bp
 from werkzeug.security import generate_password_hash
 import os
 from byod import byod_bp
@@ -52,9 +51,9 @@ def register_blueprints(app):
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(booking_bp, url_prefix="/booking")
+    app.register_blueprint(byod_bp)
     app.register_blueprint(compliance_bp, url_prefix="/device")
-    app.register_blueprint(resources_bp, url_prefix="/resources")
-    app.register_blueprint(byod_bp)   # prefix already configured in blueprint
+       # prefix already configured in blueprint
 
 
 register_blueprints(app)

@@ -121,13 +121,13 @@
         <td>{{ device.status }}</td>
 
         <td>
-            <form action="{{ url_for('admin.approve_device', device_id=device.id) }}" method="post">
+            <form action="{{ url_for('approve_device', device_id=device.id) }}" method="post">
                 <button type="submit" class="approve-btn">Approve</button>
             </form>
         </td>
 
         <td>
-            <form action="{{ url_for('admin.reject_device', device_id=device.id) }}" method="post">
+            <form action="{{ url_for('reject_device', device_id=device.id) }}" method="post">
                 <button type="submit" class="reject-btn">Reject</button>
             </form>
         </td>
