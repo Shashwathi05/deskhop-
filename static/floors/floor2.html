@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Office — Floor 2</title>
+
+<style>
+  * { box-sizing: border-box; font-family: Inter, system-ui, Arial; font-weight: 400; }
+
+  body {
+    margin:0;
+    background:linear-gradient(180deg,#f3f8fb,#eaf2f6);
+    color:#0f172a;
+    padding:28px;
+  }
+
+  .page { max-width:1220px; margin:0 auto; }
+
+  header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom:16px;
+  }
+
+  h1 { margin:0; font-size:22px; font-weight:500; }
+
+  .btn {
+    background:#f0f6fb;
+    border:0;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:500;
+    transition:0.2s;
+  }
+
+  .btn.primary {
+    background:#676a70;
+    color:white;
+  }
+
+  .btn:active {
+    transform:scale(0.97);
+  }
+
+  .layout { display:grid; grid-template-columns:1fr 320px; gap:20px; }
+
+  .plan {
+    background:white;
+    border-radius:14px;
+    padding:18px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  .plan-grid {
+    display:grid;
+    grid-template-rows:84px 1fr 68px;
+    gap:12px;
+  }
+
+  .balcony {
+    border-radius:10px;
+    border:2px solid #c7d2db;
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:15px;
+  }
+
+  .middle {
+    display:grid;
+    grid-template-columns:220px 1fr 260px;
+    gap:14px;
+  }
+
+  .block {
+    background:white;
+    border-radius:12px;
+    padding:12px;
+    border:6px solid rgba(199,210,219,0.35);
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .title { font-size:15px; font-weight:500; }
+
+  .desk {
+    width:120px;
+    height:78px;
+    border-radius:12px;
+    background:#e9fffa;
+    border:1px solid rgba(2,6,23,0.06);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:0.2s;
+  }
+
+  .desk:hover { transform:translateY(-8px); }
+
+  .desk.booked {
+    background:#fff2f2;
+    border-color:rgba(239,68,68,0.12);
+  }
+
+  .desk.manager {
+    background:#f4f6f8;
+    cursor:default;
+    opacity:0.9;
+  }
+
+  .desk .id { font-size:15px; font-weight:500; color:#0f172a; }
+  .desk .meta { font-size:12px; color:#63707a; margin-top:4px; }
+
+  /* Modal */
+  .modal-backdrop {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.45);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+  }
+
+  .modal {
+    width:100%;
+    max-width:480px;
+    background:white;
+    padding:18px;
+    border-radius:12px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.18);
+  }
+
+  .controls { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+</style>
+</head>
+
+<body>
+<div class="page">
+  <header>
+    <h1>Office — Floor 2</h1>
+    <button class="btn" id="backTo1">Back to Floor 1</button>
+  </header>
+
+  <div class="layout">
+
+    <main class="plan">
+      <div class="plan-grid">
+
+        <div class="balcony">Balcony</div>
+
+        <div class="middle">
+          <div class="block">
+            <div class="title">Facilities</div>
+            <div>Men / Women</div>
+          </div>
+
+          <div class="block">
+            <div class="title">Team Area</div>
+
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+              <div id="F1" class="desk"><div class="id">F1</div><div class="meta">Available</div></div>
+              <div id="F2" class="desk"><div class="id">F2</div><div class="meta">Available</div></div>
+              <div id="F3" class="desk"><div class="id">F3</div><div class="meta">Available</div></div>
+              <div id="F4" class="desk"><div class="id">F4</div><div class="meta">Available</div></div>
+              <div id="F5" class="desk"><div class="id">F5</div><div class="meta">Available</div></div>
+              <div id="F6" class="desk"><div class="id">F6</div><div class="meta">Available</div></div>
+              <div id="F7" class="desk"><div class="id">F7</div><div class="meta">Available</div></div>
+              <div id="F8" class="desk"><div class="id">F8</div><div class="meta">Available</div></div>
+            </div>
+
+            <div style="display:flex;justify-content:center;margin-top:14px;">
+              <div id="C1" class="desk" style="width:140px;height:96px;">
+                <div class="id">C1</div><div class="meta">Center</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="title">Right Wall</div>
+
+            <div style="display:flex;gap:14px;flex-wrap:wrap;">
+              <div id="RW1" class="desk"><div class="id">RW1</div><div class="meta">Available</div></div>
+              <div id="RW2" class="desk"><div class="id">RW2</div><div class="meta">Available</div></div>
+              <div id="RW3" class="desk"><div class="id">RW3</div><div class="meta">Available</div></div>
+            </div>
+
+            <div style="margin-top:14px;">
+              <div class="title">Manager Cabin</div>
+              <div id="MG2" class="desk manager" style="width:140px;height:90px;">
+                <div class="id">MG2</div><div class="meta">Manager</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:14px;margin-top:14px;">
+              <div id="BC1" class="desk"><div class="id">BC1</div><div class="meta">Balcony</div></div>
+              <div id="BC2" class="desk"><div class="id">BC2</div><div class="meta">Balcony</div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3 id="modalTitle">Desk</h3>
+    <p id="modalInfo"></p>
+
+    <div class="controls">
+      <button class="btn" id="closeBtn">Close</button>
+      <button class="btn" id="freeBtn" style="background:#ef4444;color:white;display:none;">Free Desk</button>
+      <button class="btn primary" id="bookBtn" style="display:none;">Book Desk</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* -------------------------
+   Read values from wrapper
+-------------------------- */
+const date  = window.DESK.date;
+const slot  = window.DESK.slot;
+const user  = window.DESK.username;
+const floor = window.DESK.floor;
+
+const API_URL = "/booking/api/bookings";
+
+const deskEls = Array.from(document.querySelectorAll('.desk')).filter(el => el.id);
+const deskIds = deskEls.map(el => el.id);
+
+const managerId = "MG2";
+
+let bookings = {};
+let selectedDesk = null;
+let bookedDeskByUser = null;
+
+/* -------------------------
+   Load bookings
+-------------------------- */
+async function loadBookings() {
+  const res = await fetch(
+    `${API_URL}?date=${encodeURIComponent(date)}&slot=${encodeURIComponent(slot)}&floor=${floor}`
+  );
+
+  bookings = res.ok ? await res.json() : {};
+
+  bookedDeskByUser = Object.keys(bookings).find(k => {
+    const info = bookings[k];
+    return info && (info.user_id == user || info.name == user);
+  });
+
+  renderDesks();
+}
+
+/* -------------------------
+   Render desk status
+-------------------------- */
+function renderDesks() {
+  deskIds.forEach(id => {
+    const el = document.getElementById(id);
+    const info = bookings[id];
+
+    el.classList.remove("booked");
+
+    if (info) {
+      el.classList.add("booked");
+      el.querySelector(".meta").textContent = info.name || info.user_id;
+    } else {
+      el.querySelector(".meta").textContent = "Available";
+    }
+
+    el.onclick = () => onDeskClick(id);
+  });
+
+  const mg = document.getElementById(managerId);
+  mg.classList.add("manager");
+  mg.onclick = () => {
+    showModal("Manager Cabin", "Not bookable.");
+    hideButtons();
+  };
+}
+
+/* -------------------------
+   Desk click handler
+-------------------------- */
+function onDeskClick(id) {
+  selectedDesk = id;
+  const info = bookings[id];
+
+  if (bookedDeskByUser && bookedDeskByUser !== id) {
+    showModal("Already booked", `You already booked desk ${bookedDeskByUser}`);
+    hideButtons();
+    return;
+  }
+
+  if (id === managerId) {
+    showModal("Manager Cabin", "Not bookable.");
+    hideButtons();
+    return;
+  }
+
+  if (!info) {
+    showModal(`Desk ${id}`, "This desk is free.");
+    document.getElementById("bookBtn").style.display = "inline-block";
+    document.getElementById("freeBtn").style.display = "none";
+  } else {
+    showModal(`Desk ${id}`, `Booked by ${info.name || info.user_id}`);
+    if (info.user_id == user || info.name == user) {
+      document.getElementById("freeBtn").style.display = "inline-block";
+    }
+    document.getElementById("bookBtn").style.display = "none";
+  }
+}
+
+/* ------------------------- */
+function showModal(title, msg) {
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalInfo").textContent = msg;
+  document.getElementById("modalBackdrop").style.display = "flex";
+}
+
+function hideButtons() {
+  document.getElementById("bookBtn").style.display = "none";
+  document.getElementById("freeBtn").style.display = "none";
+}
+
+document.getElementById("closeBtn").onclick = () =>
+  (document.getElementById("modalBackdrop").style.display = "none");
+
+/* -------------------------
+   Book desk
+-------------------------- */
+document.getElementById("bookBtn").onclick = async () => {
+  const payload = {
+    desk: selectedDesk,
+    date,
+    slot,
+    floor,
+    name: user
+  };
+
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const j = await res.json();
+  if (res.ok) {
+    loadBookings();
+    document.getElementById("modalBackdrop").style.display = "none";
+  } else {
+    showModal("Error", j.error || "Booking failed");
+  }
+};
+
+/* -------------------------
+   Free desk
+-------------------------- */
+document.getElementById("freeBtn").onclick = async () => {
+  await fetch(
+    `${API_URL}/${selectedDesk}?date=${date}&slot=${slot}&floor=${floor}`,
+    { method: "DELETE" }
+  );
+  loadBookings();
+  document.getElementById("modalBackdrop").style.display = "none";
+};
+
+/* -------------------------
+   Back to floor1
+-------------------------- */
+document.getElementById("backTo1").onclick = () => {
+  window.location.href = `/booking/floor/1?date=${date}&slot=${slot}`;
+};
+
+loadBookings();
+</script>
+
+</body>
+</html>

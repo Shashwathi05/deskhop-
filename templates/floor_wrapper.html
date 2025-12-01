@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Desk Booking — Floor {{ floor }}</title>
+
+  <style>
+    body {
+      margin:0;
+      background:#f7fbfd;
+      font-family: Inter, Arial, sans-serif;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+
+    /* TOP BAR */
+    #topbar {
+      width:100%;
+      max-width:1300px;
+      padding:12px 20px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:white;
+      border-bottom:1px solid #ddd;
+      margin:0 0 20px;
+      box-sizing:border-box;
+      position:sticky;
+      top:0;
+      z-index:50;
+    }
+
+    .nav-btn {
+      text-decoration:none;
+      padding:8px 14px;
+      border-radius:6px;
+      background:#747b7f;
+      color:white;
+      font-size:14px;
+      font-weight:600;
+    }
+    .nav-btn:hover { background:#52585b; }
+
+    /* EMBEDDED CONTENT HOST */
+    #floor-host {
+      width:100%;
+      max-width:1300px;
+      padding:0 20px;
+      box-sizing:border-box;
+    }
+
+    /* IMPORTANT: DO NOT force grid in embedded content */
+    #floor-host .page,
+    #floor-host .layout,
+    #floor-host .content {
+      width:100%;
+      box-sizing:border-box;
+    }
+
+    /* Prevent embedded header from sticking up too much */
+    #floor-host .header,
+    #floor-host header {
+      margin-top:10px !important;
+    }
+
+    /* Sidebar normalization: DON'T override its grid, only limit width */
+    #floor-host .sidebar {
+      max-width:320px;
+      width:100%;
+    }
+
+    /* Ensure the embedded page doesn't stretch */
+    #floor-host .page {
+      margin:0 auto;
+    }
+
+    @media(max-width:1100px){
+      #topbar{border-radius:0;}
+      #floor-host{padding:0 10px;}
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div>
+      <strong>Date:</strong> {{ date }} &nbsp;
+      <strong>Slot:</strong> {{ slot }} &nbsp;
+      <strong>Floor:</strong> {{ floor }}
+    </div>
+    <div style="display:flex; gap:10px;">
+      <a class="nav-btn" href="{{ url_for('booking.dashboard') }}">Back</a>
+      <a class="nav-btn" href="{{ url_for('auth.logout') }}">Logout</a>
+    </div>
+  </div>
+
+  <!-- Provide backend data to embedded HTML -->
+  <script>
+    window.DESK = {
+      date: "{{ date }}",
+      slot: "{{ slot }}",
+      floor: {{ floor }},
+      username: "{{ current_user.username }}"
+    };
+
+    window.API = {
+      GET  : `/booking/api/bookings?date=${encodeURIComponent(window.DESK.date)}&slot=${encodeURIComponent(window.DESK.slot)}&floor=${encodeURIComponent(window.DESK.floor)}`,
+      POST : `/booking/api/bookings`
+    };
+  </script>
+
+  <!-- Load floor HTML unmodified -->
+  <div id="floor-host">
+    {{ floor_html | safe }}
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const links = document.querySelectorAll("#floor-host a");
+
+      links.forEach(a => {
+        const t = a.textContent.trim().toLowerCase();
+
+        if (a.href.includes("index.html")) {
+          a.href = "/booking/book";
+        }
+        if (t.includes("floor 1")) {
+          a.href = `/booking/floor/1?date=${window.DESK.date}&slot=${window.DESK.slot}`;
+        }
+        if (t.includes("floor 2")) {
+          a.href = `/booking/floor/2?date=${window.DESK.date}&slot=${window.DESK.slot}`;
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

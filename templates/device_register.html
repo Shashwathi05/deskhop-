@@ -2,55 +2,173 @@
 <html>
 <head>
     <title>Register Device</title>
-</head>
-<body>
 
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', Arial, sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #ffffff;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #e6e6e6;
+            padding: 40px 50px;
+            width: 420px;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow:
+                0 12px 26px rgba(0,0,0,0.20),
+                0 6px 12px rgba(0,0,0,0.12);
+        }
+
+        h2 {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        p {
+            font-size: 15px;
+            color: #444;
+            margin-bottom: 12px;
+        }
+
+        .status {
+            font-weight: 600;
+            color: #222;
+            margin: 8px 0;
+        }
+
+        .mint-btn {
+            padding: 12px;
+            width: 100%;
+            border: none;
+            border-radius: 8px;
+            background: #7ed9a7;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: 0.2s;
+        }
+
+        .mint-btn:hover {
+            background: #6ac791;
+        }
+
+        a.dashboard {
+            display: block;
+            margin-top: 18px;
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+  <div class="container">
     <h2>Device Registration</h2>
 
-    <p>Your account is approved. Now register your device.</p>
+    {% if devices %}
+      <p>Your devices:</p>
+      <ul>
+        {% for dev in devices %}
+          <li>
+            <strong>{{ dev.name }}</strong> — {{ dev.platform }} — <em>{{ dev.status }}</em>
+            {% if dev.status == 'Pending' %}
+              <span style="color:orange"> (Pending approval)</span>
+            {% elif dev.status == 'Approved' %}
+              <span style="color:green"> (Approved)</span>
+            {% elif dev.status == 'Rejected' %}
+              <span style="color:red"> (Rejected)</span>
+            {% endif %}
+            {% if current_user.is_admin %}
+              <!-- Admin controls -->
+              <form action="{{ url_for('byod.admin_approve', device_id=dev.id) }}" method="post" style="display:inline">
+                <button type="submit">Approve</button>
+              </form>
+              <form action="{{ url_for('byod.admin_reject', device_id=dev.id) }}" method="post" style="display:inline">
+                <button type="submit">Reject</button>
+              </form>
+              <form action="{{ url_for('byod.delete_device', device_id=dev.id) }}" method="post" style="display:inline">
+                <button type="submit">Delete</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No devices registered.</p>
+    {% endif %}
 
+    <!-- show register button always -->
     <form id="deviceForm">
-
-        <input type="hidden" id="userAgent">
-        <input type="hidden" id="platform">
-        <input type="hidden" id="cpuThreads">
-        <input type="hidden" id="screen">
-        <input type="hidden" id="timezone">
-
-        <button type="submit">Register Device</button>
-
+      <button type="submit" class="mint-btn" id="registerBtn">Register Device</button>
     </form>
+  </div>
 
-    <script>
-        // Collect fingerprint details
-        document.getElementById("userAgent").value = navigator.userAgent;
-        document.getElementById("platform").value = navigator.platform;
-        document.getElementById("cpuThreads").value = navigator.hardwareConcurrency || 1;
-        document.getElementById("screen").value = `${screen.width}x${screen.height}`;
-        document.getElementById("timezone").value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+<script>
+document.getElementById("deviceForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
 
-        document.getElementById("deviceForm").addEventListener("submit", async function(e) {
-            e.preventDefault();
+    const btn = document.getElementById("registerBtn");
+    btn.disabled = true;
+    btn.innerText = "Registering...";
 
-            const payload = {
-                userAgent: document.getElementById("userAgent").value,
-                platform: document.getElementById("platform").value,
-                cpuThreads: document.getElementById("cpuThreads").value,
-                screen: document.getElementById("screen").value,
-                timezone: document.getElementById("timezone").value
-            };
+    const payload = {
+        name: navigator.platform ? `Device - ${navigator.platform}` : `Device_${Date.now()}`,
+        osVersion: navigator.platform || "Unknown OS",
+        userAgent: navigator.userAgent || "",
+        platform: navigator.platform || "",
+        cpuThreads: navigator.hardwareConcurrency || 1,
+        screen: `${screen.width}x${screen.height}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || ""
+    };
 
-            const res = await fetch("/device/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await res.json();
-            alert("Device registered!");
-            window.location.href = "/login";
+    try {
+        const res = await fetch("/device/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
         });
-    </script>
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+            alert("Device registration failed: " + (data.error || res.statusText));
+            return;
+        }
+
+        if (data.status === "already_approved") {
+            window.location.href = "/booking/dashboard";
+            return;
+        }
+
+        alert("Device registered! Waiting for admin approval.");
+        window.location.href = "/device/register_page";
+
+    } catch (err) {
+        alert("Network error while registering device.");
+        console.error(err);
+    }
+});
+</script>
+
 
 </body>
 </html>

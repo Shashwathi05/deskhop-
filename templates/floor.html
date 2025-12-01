@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Desk Booking – Floor</title>
+  <style>
+    body { margin:0; font-family:Arial; background:#f7fbfd; padding:20px; }
+    #msg { margin-top:12px; font-size:15px; color:#0f172a; }
+  </style>
+</head>
+
+<body>
+  <h2>Floor {{ floor }} — {{ date }} ({{ slot }})</h2>
+
+  <div id="floorContainer">Loading floor…</div>
+  <div id="msg"></div>
+
+<script>
+const DATE = "{{ date }}";
+const SLOT = "{{ slot }}";
+const FLOOR = {{ floor }};
+const CURRENT_USER = {{ current_user.id }};
+
+const API_DESKS = `/booking/api/desks?date=${encodeURIComponent(DATE)}&slot=${encodeURIComponent(SLOT)}&floor=${FLOOR}`;
+const API_BOOK = `/booking/api/book`;
+
+const FLOOR_PATH = {
+  1: "{{ url_for('static', filename='floors/floor1.html') }}",
+  2: "{{ url_for('static', filename='floors/floor2.html') }}"
+}[FLOOR];
+
+async function loadFloor() {
+  let r = await fetch(FLOOR_PATH);
+  document.getElementById("floorContainer").innerHTML = await r.text();
+  await markBookings();
+  hookClicks();
+}
+
+async function markBookings() {
+  const r = await fetch(API_DESKS);
+  const data = await r.json();
+
+  for (const [desk, info] of Object.entries(data)) {
+    const el = document.querySelector(`[data-desk="${desk}"]`);
+    if (!el) continue;
+
+    el.style.opacity = "0.45";
+    el.style.pointerEvents = "none";
+
+    const badge = document.createElement("div");
+    badge.style.color = info.user_id == CURRENT_USER ? "green" : "red";
+    badge.style.fontWeight = "bold";
+    badge.innerText = info.user_id == CURRENT_USER ? "Yours" : "Booked";
+    el.appendChild(badge);
+  }
+}
+
+function hookClicks() {
+  const desks = document.querySelectorAll("[data-desk]");
+
+  desks.forEach(el => {
+    el.style.cursor = "pointer";
+
+    el.addEventListener("click", async () => {
+      const desk = el.dataset.desk;
+
+      if (!confirm(`Book desk ${desk} for ${DATE} (${SLOT})?`)) return;
+
+      const payload = { desk, date: DATE, slot: SLOT, floor: FLOOR };
+      const res = await fetch(API_BOOK, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const out = await res.json();
+
+      if (!res.ok) {
+        alert(out.error || "Booking failed");
+        return;
+      }
+
+      document.getElementById("msg").innerText =
+        "Booking successful! Returning to dashboard…";
+
+      setTimeout(() => {
+        window.location.href = "{{ url_for('booking.dashboard') }}";
+      }, 800);
+    });
+  });
+}
+
+loadFloor();
+</script>
+
+</body>
+</html>

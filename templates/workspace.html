@@ -3,92 +3,162 @@
 <head>
   <meta charset="UTF-8">
   <title>Isolated Workspace</title>
+
+  <!-- Smooth modern font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
   <style>
-    html, body {
+    * {
       margin: 0;
       padding: 0;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      background-color: #f0f0f0;
-      font-family: Arial, sans-serif;
+      font-family: 'Poppins', Arial, sans-serif;
     }
 
-    #workspace {
+    /* OUTER BACKGROUND */
+    body {
+      background: white;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100%;
-      width: 100%;
-      background-color: #fff;
-      border: 2px solid #333;
-      box-sizing: border-box;
+    }
+
+    /* MAIN 3D BOX */
+    #workspace {
+      width: 80%;
+      max-width: 650px;
+      background: #e6e6e6;  /* Deskhop light grey */
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      box-shadow:
+        0 12px 26px rgba(0,0,0,0.20),
+        0 6px 12px rgba(0,0,0,0.12);
+      transition: filter 0.25s;
     }
 
     h1 {
-      text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 10px;
+      font-weight: 600;
       color: #333;
     }
 
+    p {
+      color: #444;
+      margin-bottom: 25px;
+      font-size: 15px;
+    }
+
+    /* MINT GREEN BUTTONS */
     button {
       padding: 12px 25px;
-      margin: 10px;
+      margin: 10px 0;
+      width: 70%;
       border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      background-color: #4CAF50;
+      border-radius: 8px;
+      background: #7ed9a7;       /* Mint green */
       color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
     }
 
     button:hover {
-      background-color: #45a049;
+      background: #6ac791;
+    }
+
+    /* LOCKSCREEN */
+    #lockscreen {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh; width: 100vw;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      font-size: 20px;
+      z-index: 9999;
+      text-align: center;
+      padding: 20px;
     }
   </style>
 </head>
 <body>
 
 <div id="workspace">
-  <h1>Welcome to Your Isolated Workspace</h1>
+  <h1>Welcome to Your Workspace</h1>
   <p>Please stay in this environment until your session is complete.</p>
-  <button id="enter-fullscreen">Enter Fullscreen & Start Session</button>
-  <form action="{{ url_for('booking.end_session') }}" method="get">
+
+  <!-- Enter fullscreen button -->
+  <button id="enter-fullscreen">Enter Fullscreen & Start</button>
+
+  <!-- End session -->
+  <form action="{{ url_for('booking.end_session', booking_id=booking_id) }}" method="get">
     <button type="submit">End Session</button>
   </form>
+
+  <!-- Pause session -->
+  <form action="{{ url_for('booking.pause_session', booking_id=booking_id) }}" method="get">
+    <button type="submit">Pause Session</button>
+  </form>
+</div>
+
+<!-- OVERLAY -->
+<div id="lockscreen">
+  <h2>Session Paused</h2>
+  <p>Your session has been paused.</p>
 </div>
 
 <script>
   const workspace = document.getElementById('workspace');
+  const lockscreen = document.getElementById('lockscreen');
   const fullscreenBtn = document.getElementById('enter-fullscreen');
 
-  // Fullscreen trigger
+  const IDLE_TIME = 10; // seconds for testing
+  let idleTimer = null;
+
+  function resetIdle() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      workspace.style.filter = "blur(8px)";
+      lockscreen.style.display = "flex";
+      const pauseURL = "{{ url_for('booking.pause_session', booking_id=booking_id) }}?reason=idle";
+      setTimeout(() => window.location.href = pauseURL, 400);
+    }, IDLE_TIME * 1000);
+  }
+
   fullscreenBtn.addEventListener('click', () => {
-    if (workspace.requestFullscreen) {
-      workspace.requestFullscreen();
-    } else if (workspace.webkitRequestFullscreen) {
-      workspace.webkitRequestFullscreen();
-    } else if (workspace.msRequestFullscreen) {
-      workspace.msRequestFullscreen();
-    }
-    fullscreenBtn.style.display = 'none'; // hide button after click
+    if (workspace.requestFullscreen) workspace.requestFullscreen();
+    fullscreenBtn.style.display = 'none';
+    resetIdle();
   });
 
-  // Disable right click
-  window.addEventListener('contextmenu', e => {
-    e.preventDefault();
-    alert("Right-click is disabled in this workspace!");
+  ["mousemove", "keydown", "wheel", "touchstart", "mousedown"].forEach(evt => {
+    window.addEventListener(evt, resetIdle, { passive: true });
   });
 
-// Auto-end session on fullscreen exit
-document.addEventListener('fullscreenchange', () => {
+  document.addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement) {
-        window.location.href = "{{ url_for('booking.end_session') }}";
+      workspace.style.filter = "blur(6px)";
+      lockscreen.style.display = "flex";
+      const pauseURL = "{{ url_for('booking.pause_session', booking_id=booking_id) }}";
+      setTimeout(() => window.location.href = pauseURL, 400);
     }
-});
+  });
 
+  document.addEventListener('keydown', e => {
+    const forbidden = ["Escape", "F11", "F12", "F5"];
+    if (forbidden.includes(e.key)) e.preventDefault();
+    if (e.ctrlKey && ["T","W","N","R"].includes(e.key.toUpperCase())) e.preventDefault();
+  });
+
+  window.addEventListener('contextmenu', e => e.preventDefault());
+  resetIdle();
 </script>
 
 </body>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Device Logs - {{ device.name or device.id }}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * { font-family: 'Poppins', Arial, sans-serif; box-sizing: border-box; }
+
+        body { margin: 0; padding: 25px; background: #eeeeee; }
+
+        .section-box {
+            background: linear-gradient(180deg, #ffffff, #f4f4f4);
+            padding: 25px;
+            margin-top: 25px;
+            border-radius: 14px;
+            box-shadow:
+                0 10px 20px rgba(0,0,0,0.15),
+                0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 14px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background: #f1f1f1;
+            padding: 12px;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        tr:hover { background: #fafafa; }
+
+        .alert {
+            padding: 12px;
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 10px 18px;
+            background: #6e6e6e;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Device Logs</h2>
+
+<div class="section-box">
+    <h3>Device Information</h3>
+    <p><strong>Device:</strong> {{ device.name }}</p>
+    <p><strong>User:</strong> {{ device.user.username }}</p>
+    <p><strong>Risk Score:</strong> {{ device.risk_score }}</p>
+
+    {% if alerts %}
+        <h3>Alerts</h3>
+        {% for a in alerts %}
+            <div class="alert">{{ a.text }}</div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<div class="section-box">
+    <h3>Activity Logs</h3>
+
+    <table>
+        <tr>
+            <th>Time</th><th>Event</th><th>Details</th><th>IP</th>
+        </tr>
+
+        {% for l in logs %}
+        <tr>
+            <td>{{ l.created_at }}</td>
+            <td>{{ l.event }}</td>
+            <td>{{ l.details or "-" }}</td>
+            <td>{{ l.ip_address or "-" }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<a class="back-btn" href="{{ url_for('admin.dashboard') }}">Back</a>
+
+</body>
+</html>

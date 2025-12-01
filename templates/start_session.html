@@ -2,30 +2,77 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Loading Workspace</title>
+  <title>Preparing Workspace</title>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
   <style>
+    * {
+      font-family: 'Poppins', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* OUTER BACKGROUND → WHITE */
     body {
+      background: white;
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background: lavenderblush;
-      font-family: Arial, sans-serif;
+    }
+
+    /* LIGHT GREY 3D BOX */
+    .box {
+      background: #e6e6e6;
+      padding: 45px 55px;
+      border-radius: 14px;
       text-align: center;
-      color: #444;
+      width: 360px;
+      box-shadow:
+        0 12px 25px rgba(0,0,0,0.18),
+        0 6px 12px rgba(0,0,0,0.12);
+    }
+
+    h2 {
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
+    /* Mint green loader */
+    .loader {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 4px solid #b7e3c0;
+      border-top-color: transparent;
+      margin: auto;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
+
 <body>
 
-<h2>Preparing your workspace...</h2>
+  <div class="box">
+    <h2>Preparing your workspace...</h2>
+    <div class="loader"></div>
+  </div>
 
 <script>
-    // Auto redirect to fullscreen page immediately
-    setTimeout(() => {
-        window.location.href = "{{ url_for('booking.fullscreen_workspace', booking_id=booking.id) }}";
-    }, 500);
+setTimeout(() => {
+    window.location.href =
+      "{{ url_for('booking.start_session', booking_id=booking_id) }}";
+}, 600);
 </script>
+
 
 </body>
 </html>

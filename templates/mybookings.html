@@ -1,0 +1,167 @@
+<!-- templates/mybookings.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>My Bookings</title>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { font-family: 'Poppins', Arial, sans-serif; }
+
+    body {
+      background: #ffffff;
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* MAIN CARD */
+    .container {
+      background: #e6e6e6; /* light grey 3D card */
+      padding: 30px;
+      width: 80%;
+      max-width: 900px;
+      border-radius: 14px;
+      box-shadow:
+        0 10px 22px rgba(0,0,0,0.18),
+        0 6px 10px rgba(0,0,0,0.12);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* BACK BUTTON as Mint Green */
+    .back-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #b7e3c0; /* mint green */
+      color: #2d4b32;
+      border-radius: 6px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid #a4d9b0;
+      transition: 0.3s;
+      margin-bottom: 20px;
+    }
+
+    .back-btn:hover {
+      background: #a4d9b0;
+    }
+
+    /* TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow:
+        0 6px 18px rgba(0,0,0,0.15),
+        0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    th {
+      text-align: left;
+      padding: 14px;
+      background: #f4f4f4;
+      color: #333;
+      border-bottom: 2px solid #e6e6e6;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #efefef;
+    }
+
+    tr:hover { background: #fafafa; }
+
+    /* Mint Green Action Button */
+    .btn {
+      padding: 8px 14px;
+      border-radius: 6px;
+      background: #b7e3c0;
+      color: #2d4b32;
+      border: none;
+      font-weight: 600;
+      text-decoration: none;
+      transition: 0.3s ease;
+    }
+
+    .btn:hover {
+      background: #a4d9b0;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h2>Your Bookings</h2>
+
+    <a href="{{ url_for('booking.dashboard') }}" class="back-btn">← Back to Dashboard</a>
+
+    {% if bookings %}
+      <table>
+        <thead>
+          <tr>
+            <th>Desk</th>
+            <th>Floor</th>
+            <th>Date</th>
+            <th>Slot</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for b in bookings %}
+          <tr>
+            <td>{{ b.desk_number }}</td>
+            <td>{{ b.floor }}</td>
+            <td>{{ b.date }}</td>
+            <td>{{ b.timeslot }}</td>
+            <td>{{ b.status }}</td>
+
+<td>
+  {% if b.status == 'Upcoming' %}
+    <a class="btn" href="{{ url_for('booking.start_booking', booking_id=b.id) }}">Start Session</a>
+
+  {% elif b.status == 'Active' %}
+    <a class="btn" href="{{ url_for('booking.fullscreen_workspace', booking_id=b.id) }}">Open Workspace</a>
+    <a class="btn" href="{{ url_for('booking.end_session', booking_id=b.id) }}">End Session</a>
+
+  {% elif b.status == 'Completed' %}
+    <span style="color:#666;">Completed</span>
+
+  {% else %}
+    <span>-</span>
+  {% endif %}
+</td>
+
+
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+    {% else %}
+      <p>No bookings yet.</p>
+    {% endif %}
+
+  </div>
+
+</body>
+</html>

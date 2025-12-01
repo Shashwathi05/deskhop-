@@ -2,140 +2,224 @@
 <html>
 <head>
     <title>Admin Dashboard</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: Arial, sans-serif; }
+        * { font-family: 'Poppins', Arial, sans-serif; box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            background-color: #eeeeee;
+        }
+
+        h2, h3 {
+            color: #6e6e6e;
+            margin-bottom: 12px;
+        }
+
+        .section-box {
+            background: linear-gradient(180deg, #ffffff, #f4f4f4);
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 14px;
+            box-shadow:
+                0px 10px 20px rgba(0,0,0,0.15),
+                0px 4px 10px rgba(0,0,0,0.08);
+            transition: 0.2s ease;
+        }
+
+        .section-box:hover {
+            transform: translateY(-4px);
+            box-shadow:
+                0px 14px 28px rgba(0,0,0,0.22),
+                0px 8px 12px rgba(0,0,0,0.18);
+        }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 12px;
-        }
-        table, th, td {
-            border: 1px solid #bbb;
-        }
-        th, td {
-            padding: 10px;
+            margin-top: 14px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
         }
 
-        .approve-btn {
-            padding: 6px 10px;
-            background: green;
-            color: white;
-            border-radius: 4px;
-            border: none;
-        }
-        .reject-btn {
-            padding: 6px 10px;
-            background: red;
-            color: white;
-            border-radius: 4px;
-            border: none;
+        th {
+            background: #f1f1f1;
+            color: #444;
+            padding: 12px;
+            border-bottom: 2px solid #dcdcdc;
+            text-align: left;
+            font-weight: 600;
         }
 
-        .high-risk { font-weight: bold; color: red; }
-        .medium-risk { font-weight: bold; color: orange; }
-        .low-risk { font-weight: bold; color: green; }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        tr:hover { background: #fafafa; }
+
+        .approve-btn, .reject-btn, .logs-btn, .delete-btn, .nuke-btn {
+            padding: 7px 12px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .approve-btn { background: #4CAF50; }
+        .approve-btn:hover { background: #3e8e41; }
+
+        .reject-btn { background: #d9534f; }
+        .reject-btn:hover { background: #b94744; }
+
+        .delete-btn { background: #555; }
+        .delete-btn:hover { background: #333; }
+
+        .nuke-btn { background: #000; }
+        .nuke-btn:hover { background: #222; }
+
+        .logs-btn { background: #6e6e6e; }
+        .logs-btn:hover { background: #5a5a5a; }
+
+        a.logout {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 8px 18px;
+            background: #6e6e6e;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a.logout:hover { background: #5a5a5a; }
     </style>
 </head>
 
 <body>
 
 <h2>Admin Dashboard</h2>
-<p>Welcome, Admin {{ current_user.username }}!</p>
+<p>Welcome, Admin!</p>
 
-<hr>
+<!-- PENDING USER APPROVALS -->
+<div class="section-box">
+    <h3>Pending User Approvals</h3>
 
-<!-- USER APPROVAL TABLE -->
-<!-- USER APPROVAL TABLE -->
-<h3>Pending User Approvals</h3>
+    <table>
+        <tr><th>ID</th><th>Username</th><th>Approve</th><th>Reject</th></tr>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>
+                <form action="{{ url_for('admin.approve_user', user_id=user.id) }}" method="post">
+                    <button class="approve-btn">Approve</button>
+                </form>
+            </td>
+            <td>
+                <form action="{{ url_for('admin.reject_user', user_id=user.id) }}" method="post">
+                    <button class="reject-btn">Reject</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
 
-<table>
-    <tr>
-        <th>ID</th>
-        <th>Username</th>
-        <th>Approve</th>
-        <th>Reject</th>
-    </tr>
+<!-- PENDING DEVICES -->
+<div class="section-box">
+    <h3>Pending / Rejected Devices</h3>
 
-    {% for user in users %}
-    <tr>
-        <td>{{ user.id }}</td>
-        <td>{{ user.username }}</td>
+    <table>
+        <tr>
+            <th>ID</th><th>User</th><th>Name</th><th>Platform</th><th>Risk</th><th>Status</th><th>Approve</th><th>Reject</th><th>Delete</th><th>Nuke</th>
+        </tr>
+        {% for d in pending_devices %}
+        <tr>
+            <td>{{ d.id }}</td>
+            <td>{{ d.user.username }}</td>
+            <td>{{ d.name }}</td>
+            <td>{{ d.platform or d.os_version }}</td>
+            <td>{{ d.risk_score }}</td>
+            <td>{{ d.status }}</td>
 
-        <td>
-            <form action="{{ url_for('admin.approve_user', user_id=user.id) }}" method="post">
-                <button type="submit" class="approve-btn">Approve</button>
-            </form>
-        </td>
+            <td>
+                <form action="{{ url_for('admin.approve_device', device_id=d.id) }}" method="post">
+                    <button class="approve-btn">Approve</button>
+                </form>
+            </td>
 
-        <td>
-            <form action="{{ url_for('admin.reject_user', user_id=user.id) }}" method="post">
-                <button type="submit" class="reject-btn">Reject</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
-<hr>
-<!-- DEVICE APPROVAL TABLE -->
-<h3>BYOD Device Approvals</h3>
+            <td>
+                <form action="{{ url_for('admin.reject_device', device_id=d.id) }}" method="post">
+                    <button class="reject-btn">Reject</button>
+                </form>
+            </td>
 
-<table>
-    <tr>
-        <th>ID</th>
-        <th>User</th>
-        <th>Name</th>
-        <th>Platform</th>
-        <th>Screen</th>
-        <th>CPU Threads</th>
-        <th>Timezone</th>
-        <th>Fingerprint</th>
-        <th>IP</th>
-        <th>Risk</th>
-        <th>Status</th>
-        <th>Approve</th>
-        <th>Reject</th>
-    </tr>
+            <td>
+                <form action="{{ url_for('admin.delete_device_admin', device_id=d.id) }}" method="post">
+                    <button class="delete-btn">Delete</button>
+                </form>
+            </td>
 
-    {% for device in devices %}
-    <tr>
-        <td>{{ device.id }}</td>
-        <td>{{ device.user.username }}</td>
-        <td>{{ device.name }}</td>
-        <td>{{ device.platform or device.os_version }}</td>
-        <td>{{ device.screen or "—" }}</td>
-        <td>{{ device.cpu_threads or "—" }}</td>
-        <td>{{ device.timezone or "—" }}</td>
-        <td>{{ device.fingerprint }}</td>
-        <td>{{ device.ip_address }}</td>
+            <td>
+                <form action="{{ url_for('admin.nuke_device', device_id=d.id) }}" method="post">
+                    <button class="nuke-btn">Nuke</button>
+                </form>
+            </td>
 
-        <td class="
-            {% if device.risk_score >= 40 %}high-risk
-            {% elif device.risk_score >= 20 %}medium-risk
-            {% else %}low-risk
-            {% endif %}
-        ">
-            {{ device.risk_score }}
-        </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
 
-        <td>{{ device.status }}</td>
+<!-- APPROVED DEVICES -->
+<div class="section-box">
+    <h3>Approved Devices & Activity</h3>
 
-        <td>
-            <form action="{{ url_for('approve_device', device_id=device.id) }}" method="post">
-                <button type="submit" class="approve-btn">Approve</button>
-            </form>
-        </td>
+    <table>
+        <tr>
+            <th>User</th><th>Device ID</th><th>Name</th><th>Platform</th><th>Risk</th><th>Last Seen</th><th>Status</th><th>Logs</th><th>Delete</th><th>Nuke</th>
+        </tr>
 
-        <td>
-            <form action="{{ url_for('reject_device', device_id=device.id) }}" method="post">
-                <button type="submit" class="reject-btn">Reject</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+        {% for d in approved_devices %}
+        <tr>
+            <td>{{ d.user.username }}</td>
+            <td>{{ d.id }}</td>
+            <td>{{ d.name }}</td>
+            <td>{{ d.platform or d.os_version }}</td>
+            <td>{{ d.risk_score }}</td>
+            <td>{{ d.updated_at }}</td>
+            <td>{{ d.status }}</td>
 
-<a href="{{ url_for('auth.logout') }}">Logout</a>
+            <td>
+                <form action="{{ url_for('admin.device_logs', device_id=d.id) }}" method="get">
+                    <button class="logs-btn">Logs</button>
+                </form>
+            </td>
+
+            <td>
+                <form action="{{ url_for('admin.delete_device_admin', device_id=d.id) }}" method="post">
+                    <button class="delete-btn">Delete</button>
+                </form>
+            </td>
+
+            <td>
+                <form action="{{ url_for('admin.nuke_device', device_id=d.id) }}" method="post">
+                    <button class="nuke-btn">Nuke</button>
+                </form>
+            </td>
+
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<a class="logout" href="{{ url_for('auth.logout') }}">Logout</a>
 
 </body>
 </html>

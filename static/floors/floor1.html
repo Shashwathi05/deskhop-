@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Office Floor — Architected Blueprint (Floor 1)</title>
+
+<style>
+  :root{
+    --bg:#eef4f7;
+    --paper:#ffffff;
+    --accent:#666a73;
+    --muted:#6b7280;
+    --wall:#c6d0db;
+    --floor:#fbfeff;
+    --desk-free: #dffcf6;
+    --desk-booked:#ffecec;
+    --desk-manager:#f3f4f6;
+    --radius:12px;
+    --thin-shadow: 0 6px 18px rgba(2,6,23,0.04);
+    --wall-2: rgba(198,208,219,0.35);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,var(--bg), #f7fbfd);font-family:Inter,system-ui,Arial;color:#0f172a;padding:26px}
+  h1{margin:0;font-size:22px}
+  .subtitle{color:var(--muted);margin-top:6px;font-size:13px}
+
+  .page{max-width:1200px;margin:0 auto}
+  .header{margin-bottom:14px;display:flex;justify-content:space-between;align-items:start;gap:12px}
+  .header-left
+  .header-right{display:flex;gap:8px;align-items:center}
+
+  .header { margin-top: 30px; }
+
+  .floor-btn{padding:8px 12px;border-radius:8px;border:0;background:#eef3fb;color:#052238;cursor:pointer;font-weight:600}
+  .floor-btn.active{background:var(--accent);color:white}
+  .floor-btn:active {
+    background:#d1d5db !important;
+    color:#111 !important;
+    transform:scale(0.96);
+    transition:transform .1s ease;
+  }
+
+  .content{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start}
+
+  .card{background:var(--paper);border-radius:12px;padding:14px;box-shadow:var(--thin-shadow)}
+
+  .plan{border-radius:12px;padding:18px;border:4px solid var(--wall-2);background:linear-gradient(180deg,#fff,#fbfdff);position:relative}
+  .plan-grid{display:grid;grid-template-rows:72px 520px 72px;gap:14px}
+
+  .balcony{display:flex;align-items:center;justify-content:center;border-radius:8px;border:2px solid var(--wall);background:linear-gradient(180deg,#fbfdff,#f7fbfd);font-weight:700;color:#556;padding:6px}
+
+  .middle{display:grid;grid-template-columns:220px 1fr 240px;gap:14px}
+
+  .block{background:linear-gradient(180deg,#fff,#fcfdff);border:6px solid var(--wall);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px;min-height:340px}
+  .block .title{font-weight:700;color:#334155;margin-bottom:6px}
+
+  .area{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;align-content:flex-start;padding:6px}
+
+  .desk{width:120px;height:78px;border-radius:10px;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;
+        border:2px solid rgba(2,6,23,0.04);box-shadow:0 8px 18px rgba(2,6,23,0.04);cursor:pointer;transition:transform .12s,box-shadow .12s}
+  .desk:hover{transform:translateY(-6px);box-shadow:0 14px 28px rgba(2,6,23,0.06)}
+  .desk .id{font-weight:700;color:#0f172a}
+  .desk .meta{font-size:12px;color:var(--muted);margin-top:6px;text-align:center}
+
+  .desk.free{background:var(--desk-free);border-color:rgba(14,165,164,0.18)}
+  .desk.booked{background:var(--desk-booked);border-color:rgba(239,68,68,0.14)}
+  .desk.manager{background:var(--desk-manager);border-color:rgba(100,116,139,0.08);cursor:default;opacity:0.98}
+
+  .mgr{width:150px;height:96px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+  .entrance{display:flex;align-items:center;justify-content:flex-end;padding-right:12px;color:var(--muted);font-size:13px}
+
+  .sidebar{display:flex;flex-direction:column;gap:12px}
+  .info .label{font-size:13px;color:var(--muted)}
+  .info .big{font-weight:700;font-size:16px;margin-top:6px}
+
+  .legend{display:flex;gap:12px;margin-top:8px;align-items:center}
+  .legend .sw{width:14px;height:12px;border-radius:4px;border:1px solid rgba(0,0,0,0.04)}
+
+  .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.45);display:none;align-items:center;justify-content:center;z-index:80}
+  .modal{background:var(--paper);padding:18px;border-radius:12px;box-shadow:0 18px 50px rgba(2,6,23,0.12);width:100%;max-width:480px}
+  .modal .title{font-weight:700;font-size:18px}
+  .modal .hint{color:var(--muted);margin-top:8px}
+  .modal .controls{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+
+  .btn{padding:10px 12px;border-radius:8px;border:0;cursor:pointer}
+  .btn-primary{background:var(--accent);color:white}
+  .btn-danger{background:#ef4444;color:white}
+  .btn-ghost{background:#eef3fb;color:#0f172a}
+
+  .file-warning{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,12,14,0.6);z-index:200}
+  .file-warning .box{background:white;padding:20px;border-radius:10px;max-width:640px;text-align:left;box-shadow:0 20px 60px rgba(2,6,23,0.2)}
+
+  @media (max-width:1100px){
+    .content{grid-template-columns:1fr;gap:12px}
+    .sidebar{order:2}
+  }
+</style>
+</head>
+
+<body>
+
+<div class="page">
+
+  <header class="header">
+    <div class="header-left">
+      <h1>Office Floor — Desk Booking</h1>
+      <div class="subtitle">Manager cabin is private (not bookable).</div>
+    </div>
+
+    <div class="header-right">
+      <button id="floor1Btn" class="floor-btn active">Floor 1</button>
+      <button id="floor2Btn" class="floor-btn">Floor 2</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <section class="plan card">
+      <div class="plan-grid">
+
+        <div class="balcony">Balcony</div>
+
+        <div class="middle">
+
+          <div class="block">
+            <div class="title">Facilities</div>
+            <div style="display:flex;gap:12px;align-items:center">
+              <div style="display:flex;gap:8px;align-items:center">
+                <div style="width:44px;height:28px;border-radius:6px;background:#fff;border:2px solid rgba(2,6,23,0.06);display:flex;align-items:center;justify-content:center;font-size:12px">WC</div>
+                <div class="meta">Ladies</div>
+              </div>
+            </div>
+            <div style="flex:1"></div>
+            <div class="meta">Toilets and utilities</div>
+          </div>
+
+          <div class="block">
+            <div class="title">Team Area</div>
+            <div class="area">
+              <div id="T1" class="desk free"><div class="id">T1</div><div class="meta">Available</div></div>
+              <div id="T2" class="desk free"><div class="id">T2</div><div class="meta">Available</div></div>
+              <div id="T3" class="desk free"><div class="id">T3</div><div class="meta">Available</div></div>
+              <div id="T4" class="desk free"><div class="id">T4</div><div class="meta">Available</div></div>
+              <div id="T5" class="desk free"><div class="id">T5</div><div class="meta">Available</div></div>
+              <div id="T6" class="desk free"><div class="id">T6</div><div class="meta">Available</div></div>
+              <div id="T7" class="desk free"><div class="id">T7</div><div class="meta">Available</div></div>
+              <div id="T8" class="desk free"><div class="id">T8</div><div class="meta">Available</div></div>
+              <div id="T9" class="desk free"><div class="id">T9</div><div class="meta">Available</div></div>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="title">Window</div>
+            <div style="display:flex;gap:12px;justify-content:center">
+              <div id="W1" class="desk free"><div class="id">W1</div><div class="meta">Window</div></div>
+              <div id="W2" class="desk free"><div class="id">W2</div><div class="meta">Window</div></div>
+              <div id="W3" class="desk free"><div class="id">W3</div><div class="meta">Window</div></div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;align-items:center;margin-top:8px;gap:10px">
+              <div id="MGR" class="desk manager">
+                <div class="id">Manager</div><div class="meta"></div>
+              </div>
+              <div style="display:flex;gap:12px">
+                <div id="B1" class="desk free"><div class="id">B1</div><div class="meta">Balcony</div></div>
+                <div id="B2" class="desk free"><div class="id">B2</div><div class="meta">Balcony</div></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="entrance">
+          <div style="display:flex;gap:10px;align-items:center">
+            <div style="width:48px;height:26px;border-radius:6px;background:#fff;border:2px solid rgba(2,6,23,0.06);display:flex;align-items:center;justify-content:center">ENT</div>
+            <div class="meta">Entrance — corridor</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <div class="card info">
+        <div class="label">Selected Day</div>
+        <div class="big" id="dayText">—</div>
+
+        <div class="label" style="margin-top:10px">Selected Slot</div>
+        <div class="big" id="slotText">—</div>
+
+        <div class="label" style="margin-top:10px">Logged in as</div>
+        <div class="big" id="userText">—</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Legend</div>
+        <div class="legend">
+          <div style="display:flex;gap:8px;align-items:center"><div class="sw" style="background:var(--desk-free)"></div><div class="meta">Free</div></div>
+          <div style="display:flex;gap:8px;align-items:center"><div class="sw" style="background:var(--desk-booked)"></div><div class="meta">Booked</div></div>
+          <div style="display:flex;gap:8px;align-items:center"><div class="sw" style="background:var(--desk-manager)"></div><div class="meta">Manager</div></div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="title" id="modalTitle">Desk</div>
+    <div class="hint" id="modalInfo">...</div>
+    <div class="controls">
+      <button id="closeBtn" class="btn btn-ghost">Close</button>
+      <button id="freeBtn" class="btn btn-danger" style="display:none">Free Desk</button>
+      <button id="bookBtn" class="btn btn-primary" style="display:none">Book Desk</button>
+    </div>
+  </div>
+</div>
+
+<div class="file-warning" id="fileWarning">
+  <div class="box"><h3>Open via server</h3><p>Use backend server.</p></div>
+</div>
+
+<script>
+function qs(n){try{return new URL(location.href).searchParams.get(n);}catch(e){return null}}
+function safeProp(n,f){try{return(window.DESK&&window.DESK[n])||f||null}catch(e){return f||null}}
+
+let date = window.DESK?.date || qs('date') || "";
+let slot = window.DESK?.slot || qs('slot') || "";
+let user = window.DESK?.username || "";
+let floor = safeProp('floor', 1);
+
+const API_URL = "/booking/api/bookings";
+
+document.getElementById("dayText").textContent = date;
+document.getElementById("slotText").textContent = slot;
+document.getElementById("userText").textContent = user;
+
+const deskEls = Array.from(document.querySelectorAll('.desk')).filter(el => el.id && el.id.trim());
+const deskIds = deskEls.map(el => el.id);
+
+const managerId='MGR';
+
+let bookings = {};
+let selectedDesk=null;
+let bookedDeskByUser=null;
+
+async function loadBookings(){
+  const res = await fetch(`${API_URL}?date=${date}&slot=${slot}&floor=${floor}`);
+  bookings = res.ok ? await res.json() : {};
+  bookedDeskByUser = Object.keys(bookings).find(k => {
+    const i = bookings[k];
+    return i && (i.user_id == user || i.name == user);
+  });
+  renderDesks();
+}
+
+function renderDesks(){
+  deskIds.forEach(id=>{
+    const el = document.getElementById(id);
+    const info = bookings[id];
+    el.classList.remove('free','booked','manager');
+    if(info){
+      el.classList.add('booked');
+      el.querySelector('.meta').textContent = info.name || info.user_id || "Booked";
+    } else {
+      el.classList.add('free');
+      el.querySelector('.meta').textContent = "Available";
+    }
+    el.onclick = ()=> onDeskClick(id);
+  });
+
+  const mg=document.getElementById(managerId);
+  mg.classList.add('manager');
+  mg.onclick = ()=>{
+    showModal("Manager Cabin","Not bookable.");
+    document.getElementById('bookBtn').style.display="none";
+    document.getElementById('freeBtn').style.display="none";
+  };
+}
+
+function showModal(t,i){
+  document.getElementById('modalTitle').textContent=t;
+  document.getElementById('modalInfo').textContent=i;
+  document.getElementById('modalBackdrop').style.display='flex';
+}
+document.getElementById('closeBtn').onclick=()=>{
+  document.getElementById('modalBackdrop').style.display='none';
+};
+
+function onDeskClick(id){
+  selectedDesk=id;
+  const info = bookings[id];
+  if(bookedDeskByUser && bookedDeskByUser !== id){
+    showModal("Already booked",`You already booked Desk ${bookedDeskByUser}`);
+    return;
+  }
+  if(id===managerId){
+    showModal("Manager Cabin","Not bookable.");
+    return;
+  }
+  if(!info){
+    showModal(`Desk ${id}`,"This desk is free.");
+    document.getElementById('bookBtn').style.display='inline-block';
+    document.getElementById('freeBtn').style.display='none';
+  } else {
+    showModal(`Desk ${id}`,`Booked by ${info.name || info.user_id}`);
+    if(info.user_id==user || info.name==user){
+      document.getElementById('freeBtn').style.display='inline-block';
+    }
+  }
+}
+
+document.getElementById('bookBtn').onclick = async ()=>{
+  if(!selectedDesk)return;
+  const payload = {desk:selectedDesk,date,slot,floor,name:user};
+  const res = await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  const j = await res.json();
+  if(res.ok){
+    loadBookings();
+    document.getElementById('modalBackdrop').style.display='none';
+  } else showModal("Error",j.error||"Booking failed");
+};
+
+document.getElementById('freeBtn').onclick = async ()=>{
+  const res = await fetch(`${API_URL}/${selectedDesk}?date=${date}&slot=${slot}&floor=${floor}`,{method:"DELETE"});
+  loadBookings();
+  document.getElementById('modalBackdrop').style.display='none';
+};
+
+document.getElementById('floor2Btn').onclick = ()=>{
+  window.location.href=`/booking/floor/2?date=${date}&slot=${slot}`;
+};
+
+loadBookings();
+</script>
+
+</body>
+</html>
