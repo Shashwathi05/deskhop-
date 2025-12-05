@@ -45,6 +45,12 @@ class Device(db.Model):
     status = db.Column(db.String(30), default='Pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=True)
+    battery = db.Column(db.String(20))
+    charging = db.Column(db.Boolean, default=False)
+    touch_support = db.Column(db.Boolean, default=False)
+    device_memory = db.Column(db.String(20))
+    connection_type = db.Column(db.String(50))
+
 
 
 class Booking(db.Model):

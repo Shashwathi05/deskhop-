@@ -137,7 +137,7 @@
 
     <table>
         <tr>
-            <th>ID</th><th>User</th><th>Name</th><th>Platform</th><th>Risk</th><th>Status</th><th>Approve</th><th>Reject</th><th>Delete</th><th>Nuke</th>
+            <th>ID</th><th>User</th><th>Name</th><th>Platform</th><th>Risk</th><th>Status</th><th>Approve</th><th>Reject</th><th>Delete</th>
         </tr>
         {% for d in pending_devices %}
         <tr>
@@ -166,11 +166,6 @@
                 </form>
             </td>
 
-            <td>
-                <form action="{{ url_for('admin.nuke_device', device_id=d.id) }}" method="post">
-                    <button class="nuke-btn">Nuke</button>
-                </form>
-            </td>
 
         </tr>
         {% endfor %}
@@ -183,7 +178,7 @@
 
     <table>
         <tr>
-            <th>User</th><th>Device ID</th><th>Name</th><th>Platform</th><th>Risk</th><th>Last Seen</th><th>Status</th><th>Logs</th><th>Delete</th><th>Nuke</th>
+            <th>User</th><th>Device ID</th><th>Name</th><th>Platform</th><th>Risk</th><th>Last Seen</th><th>Status</th><th>Logs</th><th>Delete</th>
         </tr>
 
         {% for d in approved_devices %}
@@ -208,16 +203,45 @@
                 </form>
             </td>
 
-            <td>
-                <form action="{{ url_for('admin.nuke_device', device_id=d.id) }}" method="post">
-                    <button class="nuke-btn">Nuke</button>
-                </form>
-            </td>
-
         </tr>
         {% endfor %}
     </table>
 </div>
+<!-- SECURITY ANALYTICS -->
+<div class="section-box">
+    <h3>Security Analytics</h3>
+
+    <table>
+        <tr><th>Metric</th><th>Count</th></tr>
+        <tr>
+            <td>Honeypot Triggers</td>
+            <td>{{ analytics.honeypot }}</td>
+        </tr>
+        <tr>
+            <td>Resume Auth Failures</td>
+            <td>{{ analytics.resume_failures }}</td>
+        </tr>
+        <tr>
+            <td>Idle Pauses (Automatic Locks)</td>
+            <td>{{ analytics.idle_pauses }}</td>
+        </tr>
+    </table>
+
+    <h3 style="margin-top:20px;">Top Risky Devices</h3>
+    <table>
+        <tr><th>Device ID</th><th>User</th><th>Risk Score</th><th>Platform</th></tr>
+
+        {% for d in analytics.risky_devices %}
+        <tr>
+            <td>{{ d.id }}</td>
+            <td>{{ d.user.username }}</td>
+            <td>{{ d.risk_score }}</td>
+            <td>{{ d.platform or d.os_version }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+   
 
 <a class="logout" href="{{ url_for('auth.logout') }}">Logout</a>
 

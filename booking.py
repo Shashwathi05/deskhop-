@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from models import db, Booking, User
 from datetime import datetime
 import os
+from utils.logging import log_event
 
 
 booking_bp = Blueprint('booking', __name__, url_prefix='/booking')
@@ -76,6 +77,17 @@ def api_desks():
 def api_book():
     data = request.get_json() or {}
     desk = data.get('desk') or data.get('desk_number') or data.get('deskId')
+    # HONEYPOT DETECTION
+    if str(desk).startswith("HP"):
+        from utils.logging import log_event
+        log_event(
+             "honeypot_triggered",
+            user_id=current_user.id,
+            device_id=session.get("device_id"),
+            details=f"User attempted to book hidden desk {desk}"
+            )
+        return jsonify({"error": "This desk cannot be booked."}), 403
+
     date = data.get('date')
     slot = data.get('slot')
     floor = int(data.get('floor') or 1)
@@ -261,6 +273,8 @@ def start_session(booking_id):
     b.session_start = datetime.utcnow()
     db.session.commit()
 
+    
+
     return redirect(url_for('booking.fullscreen_workspace', booking_id=booking_id))
 
 
@@ -279,6 +293,12 @@ def fullscreen_workspace(booking_id):
 @booking_bp.route('/pause_session/<int:booking_id>')
 @login_required
 def pause_session(booking_id):
+    log_event(
+    "session_pause",
+    user_id=current_user.id,
+    device_id=session.get("device_id"),
+    details=request.args.get("reason") or "manual_pause"
+)
     return redirect(url_for("booking.resume_auth", booking_id=booking_id))
 
 
@@ -292,14 +312,41 @@ def resume_auth(booking_id):
         password = request.form.get("password")
 
         from werkzeug.security import check_password_hash
+
         if not check_password_hash(current_user.password_hash, password):
+            log_event(
+                "resume_auth_failed",
+                user_id=current_user.id,
+                device_id=session.get("device_id"),
+                details="incorrect_password"
+            )
             flash("Incorrect password.", "danger")
             return redirect(url_for("booking.resume_auth", booking_id=booking_id))
+
+        # SUCCESSFUL RESUME
+        log_event(
+            "session_resume",
+            user_id=current_user.id,
+            device_id=session.get("device_id"),
+            details="resume_auth_success"
+        )
 
         return redirect(url_for("booking.fullscreen_workspace", booking_id=booking_id))
 
     return render_template("resume_auth.html", booking_id=booking_id)
 
+@booking_bp.route('/api/log_event', methods=['POST'])
+@login_required
+def api_log_event():
+    data = request.get_json() or {}
+    from utils.logging import log_event
+    log_event(
+        data.get("event"),
+        user_id=current_user.id,
+        device_id=session.get("device_id"),
+        details=data.get("details")
+    )
+    return {"ok": True}, 200
 
 # ------------------------------------------------------------
 # END SESSION

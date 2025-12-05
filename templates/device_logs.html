@@ -86,12 +86,15 @@
 
     <table>
         <tr>
-            <th>Time</th><th>Event</th><th>Details</th><th>IP</th>
+            <th>Time (IST)</th>
+            <th>Event</th>
+            <th>Details</th>
+            <th>IP</th>
         </tr>
 
         {% for l in logs %}
         <tr>
-            <td>{{ l.created_at }}</td>
+            <td>{{ l.local_time.strftime('%d-%m-%Y %I:%M:%S %p') }}</td>
             <td>{{ l.event }}</td>
             <td>{{ l.details or "-" }}</td>
             <td>{{ l.ip_address or "-" }}</td>

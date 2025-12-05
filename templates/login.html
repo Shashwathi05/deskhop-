@@ -244,6 +244,19 @@ document.getElementById("loginForm").addEventListener("submit", async (e)=>{
     btn.textContent="Login";
   }
 });
+payload.touch = 'ontouchstart' in window;
+payload.deviceMemory = navigator.deviceMemory || null;
+payload.connection = navigator.connection ? navigator.connection.effectiveType : "unknown";
+
+try {
+    const battery = await navigator.getBattery();
+    payload.battery = Math.round(battery.level * 100) + "%";
+    payload.charging = battery.charging;
+} catch(e) {
+    payload.battery = "unknown";
+    payload.charging = false;
+}
+
 </script>
 
 </body>

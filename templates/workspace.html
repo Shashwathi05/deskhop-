@@ -119,12 +119,31 @@
   const lockscreen = document.getElementById('lockscreen');
   const fullscreenBtn = document.getElementById('enter-fullscreen');
 
-  const IDLE_TIME = 10; // seconds for testing
+  const IDLE_TIME = 10; 
   let idleTimer = null;
 
+  // ==============================
+  // LOGGING API
+  // ==============================
+  async function logUserEvent(evt, details="") {
+      try {
+          await fetch("/booking/api/log_event", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({ event: evt, details })
+          });
+      } catch(e) { console.warn("Log failed", e); }
+  }
+
+  // ===============================
+  // IDLE TRACKING
+  // ===============================
   function resetIdle() {
     clearTimeout(idleTimer);
+    logUserEvent("idle_reset");
+
     idleTimer = setTimeout(() => {
+      logUserEvent("idle_trigger");
       workspace.style.filter = "blur(8px)";
       lockscreen.style.display = "flex";
       const pauseURL = "{{ url_for('booking.pause_session', booking_id=booking_id) }}?reason=idle";
@@ -132,34 +151,60 @@
     }, IDLE_TIME * 1000);
   }
 
+  // ===============================
+  // FULLSCREEN ENTER
+  // ===============================
   fullscreenBtn.addEventListener('click', () => {
     if (workspace.requestFullscreen) workspace.requestFullscreen();
     fullscreenBtn.style.display = 'none';
+    logUserEvent("fullscreen_enter");
     resetIdle();
   });
 
+  // ===============================
+  // MOUSE + KEY ACTIVITY → reset idle
+  // ===============================
   ["mousemove", "keydown", "wheel", "touchstart", "mousedown"].forEach(evt => {
     window.addEventListener(evt, resetIdle, { passive: true });
   });
 
+  // ===============================
+  // FULLSCREEN EXIT → pause session
+  // ===============================
   document.addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement) {
+      logUserEvent("fullscreen_exit");
       workspace.style.filter = "blur(6px)";
       lockscreen.style.display = "flex";
-      const pauseURL = "{{ url_for('booking.pause_session', booking_id=booking_id) }}";
+      const pauseURL = "{{ url_for('booking.pause_session', booking_id=booking_id) }}?reason=fullscreen_exit";
       setTimeout(() => window.location.href = pauseURL, 400);
     }
   });
 
+  // ===============================
+  // FORBIDDEN KEYS
+  // ===============================
   document.addEventListener('keydown', e => {
     const forbidden = ["Escape", "F11", "F12", "F5"];
-    if (forbidden.includes(e.key)) e.preventDefault();
-    if (e.ctrlKey && ["T","W","N","R"].includes(e.key.toUpperCase())) e.preventDefault();
+    if (forbidden.includes(e.key)) {
+        logUserEvent("forbidden_key", `Pressed ${e.key}`);
+        e.preventDefault();
+    }
+
+    if (e.ctrlKey && ["T","W","N","R"].includes(e.key.toUpperCase())) {
+        logUserEvent("forbidden_key", `Pressed Ctrl+${e.key.toUpperCase()}`);
+        e.preventDefault();
+    }
   });
 
-  window.addEventListener('contextmenu', e => e.preventDefault());
+  window.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      logUserEvent("forbidden_key", "Right click blocked");
+  });
+
   resetIdle();
 </script>
+
 
 </body>
 </html>
